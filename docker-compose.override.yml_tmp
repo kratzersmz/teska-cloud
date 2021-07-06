@@ -1,0 +1,19 @@
+services: 
+  collab:
+    image: kratzersmz/libreoffice-online:7-0-2020-08-18
+    container_name: collabora
+    networks:
+      - proxy-tier
+    depends_on:
+      - proxy
+      - letsencrypt-companion
+    environment:
+      - domain=
+      - username=admin
+      - password=
+      - VIRTUAL_PORT=9980
+      - VIRTUAL_HOST=
+      - LETSENCRYPT_HOST=
+      - LETSENCRYPT_EMAIL=
+      - extra_params=--o:ssl.enable=false --o:ssl.termination=true
+    restart: always

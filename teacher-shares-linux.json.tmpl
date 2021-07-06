@@ -1,0 +1,52 @@
+[
+    {
+        "mount_id": 1,
+        "mount_point": "\/Homeverzeichnis",
+        "storage": "\\OCA\\Files_External\\Lib\\Storage\\SMB",
+        "authentication_type": "password::userprovided",
+        "configuration": {
+            "host": "10.1.0.1",
+            "share": "\/",
+            "root": "$home",
+            "domain": "paedml-linux.lokal",
+            "show_hidden": false,
+            "timeout": ""
+        },
+        "options": {
+            "encrypt": true,
+            "previews": true,
+            "filesystem_check_changes": 1,
+            "encoding_compatibility": false,
+            "readonly": false,
+            "enable_sharing": true
+        },
+        "applicable_users": [],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 2,
+        "mount_point": "\/Lehrer-Tauschverzeichnis",
+        "storage": "\\OCA\\Files_External\\Lib\\Storage\\SMB",
+        "authentication_type": "password::userprovided",
+        "configuration": {
+            "host": "10.1.0.1",
+            "share": "\/",
+            "root": "lehrer-schule",
+            "domain": "paedml-linux.lokal",
+            "show_hidden": false,
+            "timeout": ""
+        },
+        "options": {
+            "encrypt": true,
+            "previews": true,
+            "enable_sharing": true,
+            "filesystem_check_changes": 1,
+            "encoding_compatibility": false,
+            "readonly": false
+        },
+        "applicable_users": [],
+        "applicable_groups": [
+            "lehrer-schule"
+        ]
+    }
+]

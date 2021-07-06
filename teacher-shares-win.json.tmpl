@@ -1,0 +1,78 @@
+[
+    {
+        "mount_id": 1,
+        "mount_point": "\/01_Lehrer-HOME (H:)",
+        "storage": "\\OCA\\Files_External\\Lib\\Storage\\SMB",
+        "authentication_type": "password::logincredentials",
+        "configuration": {
+            "host": "10.1.1.2",
+            "share": "MLData",
+            "root": "\/Benutzer\/LUL\/$home",
+            "domain": "MUSTERSCHULE.SCHULE.PAEDML",
+            "show_hidden": false,
+            "check_acl": false,
+            "timeout": ""
+        },
+        "options": {
+            "encrypt": true,
+            "previews": true,
+            "enable_sharing": false,
+            "filesystem_check_changes": 1,
+            "encoding_compatibility": false,
+            "readonly": false
+        },
+        "applicable_users": [],
+        "applicable_groups": ["G_Lehrer"]
+    },
+    {
+        "mount_id": 2,
+        "mount_point": "\/02_Lehrer-Klassen-Tausch (T:)",
+        "storage": "\\OCA\\Files_External\\Lib\\Storage\\SMB",
+        "authentication_type": "password::logincredentials",
+        "configuration": {
+            "host": "10.1.1.2",
+            "share": "MLData",
+            "root": "BEFILLEDBYSCRIPT",
+            "domain": "MUSTERSCHULE.SCHULE.PAEDML",
+            "show_hidden": false,
+            "check_acl": true,
+            "timeout": ""
+        },
+        "options": {
+            "encrypt": true,
+            "previews": true,
+            "enable_sharing": false,
+            "filesystem_check_changes": 1,
+            "encoding_compatibility": false,
+            "readonly": false
+        },
+        "applicable_users": [],
+        "applicable_groups": ["G_Lehrer"]
+    },
+    {
+        "mount_id": 3,
+        "mount_point": "\/03_Lehrer_Zugriff_Schueler (S:)",
+        "storage": "\\OCA\\Files_External\\Lib\\Storage\\SMB",
+        "authentication_type": "password::logincredentials",
+        "configuration": {
+            "host": "10.1.1.2",
+            "share": "MLData",
+            "root": "BEFILLEDBYSCRIPT",
+            "domain": "MUSTERSCHULE.SCHULE.PAEDML",
+            "show_hidden": false,
+            "check_acl": false,
+            "timeout": ""
+        },
+        "options": {
+            "encrypt": true,
+            "previews": true,
+            "enable_sharing": false,
+            "filesystem_check_changes": 1,
+            "encoding_compatibility": false,
+            "readonly": false
+        },
+        "applicable_users": [],
+        "applicable_groups": ["G_Lehrer"]
+    }
+]
+
