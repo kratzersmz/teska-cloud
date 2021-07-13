@@ -1,0 +1,12 @@
+services: 
+  collab:
+    image: kratzersmz/libreoffice-online:7-0-2020-08-18
+    container_name: teska-collabora
+    networks:
+      - proxy-tier
+    depends_on:
+      - proxy
+      - letsencrypt-companion
+    env_file:
+      - collabora.env
+    restart: always

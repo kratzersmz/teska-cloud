@@ -14,6 +14,7 @@ import secrets
 import time
 import json
 import yaml
+import shutil
 
 # consts
 masters = dict(windows="dc01.musterschule.schule.paedml", linux="server.paedml-linux.lokal")
@@ -30,25 +31,27 @@ client = docker.from_env()
 currentDir, currentFile = os.path.split(os.path.abspath(__file__))
 
 
+# Clean Dir (remove *.tar)
 def clean_dir():
     files = os.listdir(currentDir)
     for file in files:
       if file.endswith(".tar"):
         os.remove(os.path.join(currentDir,file))
 
-
+# run docker-compose with filename (disabled usage of filename in code)
 def run_docker_compose(filename):
-    command_name = ["docker-compose", "-f", filename, "up", "-d", "--build"]
-    popen = subprocess.Popen(command_name, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-    return popen
+    command_name = ["docker-compose", "up", "-d", "--build"]
+    popen = subprocess.check_call(command_name, stdout=sys.stdout,stderr=subprocess.STDOUT)
 
 
+# bringing docker-compose down with filename (disabled usage of filename in code)
 def down_docker_compose(filename):
-    command_name = ["docker-compose", "-f", filename, "down"]
-    popen = subprocess.Popen(command_name, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    command_name = ["docker-compose", "down"]
+    popen = subprocess.Popen(command_name, stdin=PIPE,stdout=PIPE, stderr=PIPE)
     return popen
-    
-
+ 
+   
+# Copy files to Container
 #https://stackoverflow.com/questions/46390309/how-to-copy-a-file-from-host-to-container-using-docker-py-docker-sdk
 def container_copy_file(src,dst):
     name, dst = dst.split(':')
@@ -65,6 +68,7 @@ def container_copy_file(src,dst):
     container.put_archive(os.path.dirname(dst), data) 
 
 
+# Check if container is running
 def container_is_running(container_name):
     container = DOCKER_CLIENT.containers.get(container_name)
     container_state = container.attrs['State']
@@ -72,37 +76,43 @@ def container_is_running(container_name):
     return container_is_running
 
 
+# check container state
 def container_status(container_name):
     container = DOCKER_CLIENT.containers.get(container_name)
     container_state = container.attrs['State']
     return container_state
 
 
+# set initial setup stuff
 def nextcloud_initial_setup(password):
     command_name = ["docker", "exec", "{0}".format(ncContainerName), "su", "www-data", "-s", "/bin/sh", "-c",
                     'php occ user:add --display-name="nc-admin" --group="admin" --password-from-env nc-admin']
     my_env = os.environ.copy()
     my_env["OC_PASS"] = password
-    popen = subprocess.Popen(command_name, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True, env=my_env)
+    popen = subprocess.Popen(command_name, stdout=sys.stdout, stderr=subprocess.STDOUT, env=my_env)
     return popen
 
 
+# configure ldap stuff
 def nextcloud_configure_ldap(username, password, email):
     command_name = ["docker", "exec", ncContainerName, "su", "www-data", "-s", "/bin/sh", "-c",
                     "php occ maintenance:install --admin-user {0} --admin-pass {1} --admin-email {2}".format(username,
                                                                                                              password,
                                                                                                              email)]
-    popen = subprocess.Popen(command_name, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-    return popen
+    popen = subprocess.Popen(command_name, stdout=sys.stdout, stderr=subprocess.STDOUT)
 
 
+# basic command for general nextcloud setting configs via occ
 def nextcloud_configure_general(occommand):
     command_name = ["docker", "exec", "{0}".format(ncContainerName), "su", "www-data", "-s", "/bin/sh", "-c",
                     "php occ {0}".format(occommand)]
-    popen = subprocess.Popen(command_name, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+
+    print("docker exec {0} su www-data -s /bin/sh -c php occ {1}".format(ncContainerName,occommand))
+    popen = subprocess.Popen(command_name, stdout=sys.stdout, stderr=subprocess.STDOUT)
     return popen
 
 
+# pinging function
 def ping(hostname, waittime=1000):
     assert isinstance(hostname, str), \
         "IP/hostname must be provided as a string."
@@ -184,7 +194,6 @@ def nextcloud_write_config(data,filename):
       print("File {0} error writing .....".format(filename))
 
 
-
 # set root pw
 def setpassword(username: str, password: str):
     p = subprocess.Popen(["/usr/sbin/chpasswd"], universal_newlines=True, shell=False, stdin=subprocess.PIPE,
@@ -246,19 +255,21 @@ try:
 except:
   print("Cant open {0}".format(sourceFile))
 
+
 # Check if root/docker access
 try:
     DOCKER_CLIENT = docker.DockerClient(base_url='unix://var/run/docker.sock')
 except:
-    print(f"{bcolors.FAIL}Aktueller user ist nicht root bzw. kein Zugang zur docker Instanz. Breche Installationsript nun ab!{bcolors.ENDC}")
+    print("Aktueller user ist nicht root bzw. kein Zugang zur docker Instanz. Breche Installationsript nun ab!")
     sys.exit(4)
 
+
 # General Info
-print(f"{bcolors.FAIL}Bitte notiere Dir das NEUE root Passwort{bcolors.ENDC}")
+print("Bitte notiere Dir das NEUE root Passwort")
 print(
-    f"{bcolors.FAIL}Die Urls für Nextcloud/collabora müssen vorher beim Domainhoster eingetragen werden{bcolors.ENDC}")
+    "Die Urls für Nextcloud/collabora müssen vorher beim Domainhoster eingetragen werden")
 print(
-    f"{bcolors.FAIL}Bevor hier weiter gemacht wird, vergewissere Dich, dass die Firewall wie lt. Anleitung konfiguriert ist.{bcolors.ENDC}")
+    "Bevor hier weiter gemacht wird, vergewissere Dich, dass die Firewall wie lt. Anleitung konfiguriert ist.")
 input("Drücke Enter um fortzufahren...")
 
 # bring down running docker-compose instance
@@ -268,6 +279,7 @@ down_docker_compose('docker-compose.yml')
 
 # clean dir
 clean_dir()
+
 
 # check if paedml linux or paedml windows
 print("Checking if paedml-linux or paedml-windows")
@@ -286,40 +298,38 @@ else:
         elif PaedML.lower() in ['linux', 'li', 'l']:
             PaedML = "linux"
         else:
-            print(f"{bcolors.FAIL}Bitte gib windows oder linux ein!{bcolors.ENDC}")
+            print("Bitte gib windows oder linux ein!")
 
 # Begin testing Basics work
-"""print(f"{bcolors.BOLD}Teste ob dc01 erreichbar via ping....{bcolors.ENDC}")
+"""print(f"{bcolors.BOLD}Teste ob dc01 erreichbar via ping....")
 if ping():
-    print(f"{bcolors.OKGREEN}dc01 ist erreichbar{bcolors.ENDC}")
+    print(f"{bcolors.OKGREEN}dc01 ist erreichbar")
 else:
     print(
-        f"{bcolors.FAIL}dc01 ist nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationscript nun ab!{bcolors.ENDC}")
+        "dc01 ist nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationscript nun ab!")
     sys.exit(5)
 
-print(f"{bcolors.BOLD}Teste ob sp01 erreichbar via ping....{bcolors.ENDC}")
+print(f"{bcolors.BOLD}Teste ob sp01 erreichbar via ping....")
 if ping(sp01):
-    print(f"{bcolors.OKGREEN}sp01 ist erreichbar{bcolors.ENDC}")
+    print(f"{bcolors.OKGREEN}sp01 ist erreichbar")
 else:
     print(
-        f"{bcolors.FAIL}sp01 ist nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationscript nun ab!{bcolors.ENDC}")
+        "sp01 ist nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationscript nun ab!")
     sys.exit(6)
 """
 
-print(f"{bcolors.BOLD}Teste grundsätzlich ob der SMB Port 445/tcp von " + dataServers[PaedML] + " erreichbar.......{bcolors.ENDC}")
+print("Teste grundsätzlich ob der SMB Port 445/tcp von " + dataServers[PaedML] + " erreichbar.......")
 if check_socket(dataServers[PaedML], smbPort):
-    print(f"{bcolors.OKGREEN}SMB Port 445/tcp " + dataServers[PaedML] +" erreichbar.{bcolors.ENDC}")
+    print("SMB Port 445/tcp " + dataServers[PaedML] +" erreichbar.")
 else:
-    print(
-        f"{bcolors.BOLD}SMB Port 445/tcp " + dataServers[PaedML] +" nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationsscript nun ab!{bcolors.ENDC}")
+    print("SMB Port 445/tcp " + dataServers[PaedML] +" nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationsscript nun ab!")
     sys.exit(7)
 
-print(f"{bcolors.BOLD}Teste grundsätzlich ob der ldap Port " +  str(LdapPorts[PaedML]) +"/tcp auf " + masters[PaedML] + " erreichbar.......{bcolors.ENDC}")
+print("Teste grundsätzlich ob der ldap Port " +  str(LdapPorts[PaedML]) +"/tcp auf " + masters[PaedML] + " erreichbar.......")
 if check_socket(masters[PaedML], LdapPorts[PaedML]):
-    print(f"{bcolors.OKGREEN}Ldap Port "+ str(LdapPorts[PaedML]) + "/tcp von " + masters[PaedML] +" erreichbar.{bcolors.ENDC}")
+    print("Ldap Port "+ str(LdapPorts[PaedML]) + "/tcp von " + masters[PaedML] +" erreichbar.")
 else:
-    print(
-        f"{bcolors.BOLD}Ldap Port "+ str(LdapPorts[PaedML]) +"/tcp von "+ masters[PaedML] +" nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationsscript nun ab!{bcolors.ENDC}")
+    print("Ldap Port "+ str(LdapPorts[PaedML]) +"/tcp von "+ masters[PaedML] +" nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationsscript nun ab!")
     sys.exit(8)
 
 
@@ -329,15 +339,17 @@ while True:
         setpassword('root',HostRootPw)
         break
     else:
-        print(f"{bcolors.FAIL}Das Passwort ist keine 6 Zeichen lang!{bcolors.ENDC}")
+        print("Das Passwort ist keine 6 Zeichen lang!")
+
 
 # School Type for setting shares correcly
 while True:
     SchoolTypeShort = input("Wie ist das Schulartkürzel der paedML Installation(Gross/Klein beachten..)?: ")
     if (len(SchoolTypeShort) <= 0):
-        print(f"{bcolors.FAIL}Zu kurzer Wert, bitte nochmal{bcolors.ENDC}")
+        print("Zu kurzer Wert, bitte nochmal")
     else:
         break
+
 
 # Nextcloud nc-admin Password
 while True:
@@ -345,37 +357,42 @@ while True:
     if len(CloudPassword) > 8:
         break
     else:
-        print(f"{bcolors.FAIL}Das Passwort ist keine 8 Zeichen lang! Nochmal!{bcolors.ENDC}")
+        print("Das Passwort ist keine 8 Zeichen lang! Nochmal!")
+
 
 # Nextcloud ldap user
 while True:
     LdapUser = input("Username vom ldap bind user, welcher zuvor eingerichtet wurde?: ")
     if len(LdapUser) <= 0:
-        print(f"{bcolors.FAIL}Keinen User eingegeben, bitte nochmal!!{bcolors.ENDC}")
+        print("Keinen User eingegeben, bitte nochmal!!")
     else:
         break
+
 
 # Nextcloud ldap pw
 while True:
     LdapPassword = input("Zugehöriges Password von {0}?: ".format(LdapUser))
     if len(LdapPassword) <= 0:
-        print(f"{bcolors.FAIL}Leeres Password, bitte nochmal!!{bcolors.ENDC}")
+        print("Leeres Password, bitte nochmal!!")
     else:
         break
 
 
 # Cloud Url Stuff
-HostProps = getprops("hosts.env")
+if os.path.isfile("hosts.env"):
+  HostProps = getprops("hosts.env")
+else:
+  HostProps = getprops("hosts.env.tmpl")
 while True:
         CloudUrl = default_input("Wie ist die öffentliche domain/subdomain deiner nextcloud instanz(ohne https://)",
                                  HostProps["VIRTUAL_HOST"])
-        if len(CloudUrl) < 1:
-            print(f"{bcolors.FAIL}Ungültige Eingabe(zu wenig Zeichen)!{bcolors.ENDC}")
+        if len(CloudUrl) < 3:
+            print("Ungültige Eingabe(zu wenig Zeichen)!")
         if not '.' in CloudUrl:
-            print(f"{bcolors.FAIL}Ungültige Eingabe(für eine richtige domain fehlt ein . in der domain!{bcolors.ENDC}")
+            print("Ungültige Eingabe(für eine richtige domain fehlt ein . in der domain!")
         else:
             CloudEmail = 'admin@' + CloudUrl
-            HostProps["LETSENCRYPT_MAIL"] = CloudEmail
+            HostProps["LETSENCRYPT_EMAIL"] = CloudEmail
             HostProps["LETSENCRYPT_HOST"] = CloudUrl
             HostProps["VIRTUAL_HOST"] = CloudUrl
             break
@@ -384,44 +401,48 @@ print("Personalisiere hosts.env...")
 try:
     writeprop('hosts.env', HostProps)
 except:
-    print(f"{bcolors.FAIL}Konnte hosts.env nicht schreiben....{bcolors.ENDC}")
+    print("Konnte hosts.env nicht schreiben....")
+
 
 # Collabora Url Stuff
-CollaboraProps = getprops("collabora.env")
-
-
+if os.path.isfile("collabora.env"):
+  CollaboraProps = getprops("collabora.env")
+else:
+  CollaboraProps = getprops("collabora.env.tmpl")
 while True:
         CollaboraEnable = default_input("Soll eine Collabora Instanz eingerichtet werden? (J/n)", "J")
         if CollaboraEnable.lower() in ['j', 'ja', 'y', 'yes']:
           CollaboraEnable = True
           CollaboraUrl = default_input("Wie ist die öffentliche domain/subdomain deiner collabora instanz(ohne https://)",
-                                 HostProps["VIRTUAL_HOST"])
+                                 CollaboraProps["VIRTUAL_HOST"])
           if len(CollaboraUrl) < 1:
-              print(f"{bcolors.FAIL}Ungültige Eingabe(zu wenig Zeichen)!{bcolors.ENDC}")
-          if not '.' in CollaboraUrl:
-              print(f"{bcolors.FAIL}Ungültige Eingabe(für eine richtige domain fehlt ein . in der domain!{bcolors.ENDC}")
+              print("Ungültige Eingabe(zu wenig Zeichen)!")
+          elif not '.' in CollaboraUrl:
+              print("Ungültige Eingabe(für eine richtige domain fehlt ein . in der domain!")
+          elif HostProps["VIRTUAL_HOST"].lower() == CollaboraUrl.lower():
+              print("Collabora Domain kann nicht die gleiche wie die Nextcloud Domain sein!")
           else:
               CollaboraEmail = 'admin@' + CollaboraUrl
-              CollaboraProps["LETSENCRYPT_MAIL"] = CollaboraEmail
+              CollaboraProps["LETSENCRYPT_EMAIL"] = CollaboraEmail
               CollaboraProps["LETSENCRYPT_HOST"] = CollaboraUrl
               CollaboraProps["VIRTUAL_HOST"] = CollaboraUrl
               CollaboraProps["domain"] = CollaboraUrl
               CollaboraProps["password"] = secrets.token_urlsafe(14)
-              if os.path.isfile('docker-compose.override.yml_tmp'):
+              if os.path.isfile('docker-compose.override.yml.tmp'):
                 try:
-                  os.rename('docker-compose.override.yml_tmp', 'docker-compose.override.yml')
+                  shutil.copy2('docker-compose.override.yml.tmp', 'docker-compose.override.yml')
                   print("erledigt!")
                 except:
-                  print('Kann docker-compose.override.yml_tmp nicht nach docker-compose.override.yml umbennen')
+                  print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml kopieren')
               break
         else:
           print("Überspringe collabora Einrichtung, kann später noch händisch nachgeholt werden....!")
           if os.path.isfile('docker-compose.override.yml'):
               try:
-                  os.rename('docker-compose.override.yml', 'docker-compose.override.yml_tmp')
+                  os.rename('docker-compose.override.yml', 'docker-compose.override.yml.tmp2')
                   print("erledigt!")
               except:
-                  print('Kann docker-compose.override.yml_tmp nicht nach docker-compose.override.yml umbennen')
+                  print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml2 umbennen')
           break
 
 
@@ -431,7 +452,7 @@ if CollaboraEnable:
         writeprop('collabora.env', CollaboraProps)
         print("erledigt!")
     except:
-        print(f"{bcolors.FAIL}Konnte collabora.env nicht schreiben....{bcolors.ENDC}")
+        print("Konnte collabora.env nicht schreiben....")
 
 """ Currently not needed to edit yml files
     print("Personalisiere collabora docker-compose override und aktiviere.....", end="")
@@ -445,25 +466,30 @@ if CollaboraEnable:
     yml['services']['collab'][]
 """
 
+
 # DB ENVs
-DbProps = getprops("db.env")
+if os.path.isfile("db.env"):
+  DbProps = getprops("db.env")
+else:
+  DbProps = getprops("db.env.tmpl")
 # todo: logge altes PW in log datei....
 if len(DbProps["MYSQL_ROOT_PASSWORD"]) < 8:
     print("Scheint so, also ob die Länge des DB root PWs kleiner 8 wäre, erstelle ein nun ein neues random pw...")
     DbProps["MYSQL_ROOT_PASSWORD"] = secrets.token_urlsafe(12)
 if len(DbProps["MYSQL_PASSWORD"]) < 8:
-    print("Scheint so, als ob die Länge des db PWs kleiner 8 wäre, erstelle ein neues random pw")
+    print("Scheint so, als ob die Länge des db PWs kleiner 8 wäre, erstelle ein neues random pw!")
     DbProps["MYSQL_PASSWORD"] = secrets.token_urlsafe(12)
 try:
     writeprop("db.env", DbProps)
 except:
-    print(f"{bcolors.FAIL}Konnte db.env nicht schreiben....{bcolors.ENDC}")
+    print("Konnte db.env nicht schreiben....")
+
 
 # start docker-compose and check if container is online
-print("Downloade/Starte Docker Container(nextcloud, fpm, redis, letsencrypt, mariadb,...). Dies kann je nach Verbindung einige Minuten dauern. Bitte den Prozess nicht abbrechen.", end='')
+print("Downloade/Starte Docker Container(nextcloud, fpm, redis, letsencrypt, mariadb,...). Dies kann je nach Verbindung einige Minuten dauern. Bitte den Prozess nicht abbrechen.....")
 run_docker_compose('docker-compose.yml')
 while True:
-    time.sleep(2)
+    time.sleep(5)
     try:
         container_is_running(ncContainerName)
         print('....erledigt!')
@@ -471,15 +497,32 @@ while True:
     except:
         print('.', end='')
 
+
 # change admin password nextcloud
 print("Richte Nextcloud nc-admin user mit Passwort ein....", end='')
 try:
-  nextcloud_initial_setup('OC_PASS={0} user:add --display-name="{1} --group="Administrator" --password-from-env nc-admin').format(CloudPassword)
+  #todo health check of all containers, workaround waiting 15 secs....
+  print('Warte 15 secs bis alle Container gestartet sind...')
+  time.sleep(15)
+  nextcloud_configure_general('maintenance:install --database=mysql --database-host=db --database-name=nextcloud --database-user=nextcloud --database-pass={0} --admin-user "nc-admin" --admin-pass "{1}"'.format(DbProps["MYSQL_PASSWORD"],CloudPassword))
+  print('Warte bis Nextcloud Grundinstallation komplett.....15 secs')
+  time.sleep(15)
   nextcloud_configure_general('user:disable admin')
   print('erledigt!')
 except:
     print('error!')
-time.sleep(2)
+time.sleep(5)
+
+
+# add to trusted domains
+print("Add Domain to trusted Domains of nextcloud....", end='')
+try:
+  nextcloud_configure_general('config:system:set trusted_domains 1 --value={0}'.format(CloudUrl))
+  print('erledigt!')
+except:
+    print('error!')
+time.sleep(5)
+
 
 # add ldap setup to nextcloud
 print("PreCheck von Ldap Username/PW direkt am Server....", end='')
@@ -489,16 +532,29 @@ else:
     print("Kombination aus User/Passwort für Ldapserver scheint falsch zu sein, mache trotzdem weiter...Du kannst es später in den der Nextcloud Weboberfläche ändern...!")
 
 
+# Ldap Plugin enable
 print("aktiviere user_ldap plugin......", end="")
 nextcloud_configure_general("app:enable user_ldap")
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
 
+
+# Files external enable
 print("aktiviere files_external plugin.....", end="")
 nextcloud_configure_general("app:enable files_external")
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
 
+
+
+print("erstelle leere ldap config s01.....", end="")
+nextcloud_configure_general("ldap:create-empty-config")
+print("erledigt!")
+time.sleep(5)
+
+
+
+# Starting setup Ldap
 print("Beginne mit Nextcloud Ldap Setup(User einrichten, Queries schreiben)....", end="")
 if PaedML == 'windows':
   ncConfig = nextcloud_get_config(ncConfigs['windows'])
@@ -508,6 +564,8 @@ if PaedML == 'windows':
   nextcloud_write_config(ncConfig, "{0}/{1}".format(currentDir,os.path.splitext(os.path.basename(ncConfigs['windows']))[0]))
   container_copy_file("{0}/{1}".format(currentDir,os.path.splitext(os.path.basename(ncConfigs['windows']))[0]),"{0}:/tmp/{1}".format(ncContainerName,os.path.splitext(os.path.basename(ncConfigs['windows']))[0]))
   nextcloud_configure_general("config:import /tmp/{0}".format(os.path.splitext(os.path.basename(ncConfigs['windows']))[0]))
+  # workaround for getting imports ready sleep 5 secs
+  time.sleep(5)
   nextcloud_configure_general("ldap:set-config s01 ldapAgentPassword {0}".format(LdapPassword))
 #if PaedML == 'linux':
   # not finished yet
@@ -518,8 +576,10 @@ if PaedML == 'windows':
   #container_copy_file("{0}/{1}".format(currentDir,ncConfigs['windows']),ncContainerName + "{0}:/tmp/".format(ncConfigs['windows']))
   #nextcloud_configure_general("config:import /tmp/{0}".format(ncConfigs['windows']))
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
 
+
+# Teacher Shares
 print("Beginne mit dem einrichten der Lehrer Shares.....", end="")
 # indexed file 0 - 2
 teacherShares = nextcloud_get_config(ncConfigShareTeacher[PaedML])
@@ -535,9 +595,9 @@ if PaedML == 'windows':
   #teacherShares[2]['configuration']['root'] = 'Benutzer\/Schueler\/{0}'.format(SchoolTypeShort)
   #nextcloud_configure_general("files_external:import < {0}".format(teacherShares))
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
 
-
+# Pupil Shares
 print("Beginne mit dem einrichten der Schüler Shares.....", end="")
 pupilShares = nextcloud_get_config(ncConfigSharePupil[PaedML])
 if PaedML == "windows":
@@ -547,29 +607,64 @@ if PaedML == "windows":
   nextcloud_configure_general("files_external:import /tmp/{0}".format(os.path.splitext(ncConfigSharePupil['windows'])[0]))
 #todo paedml Linux
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
 
+
+# Enable Client
 print("Aktiviere Nextcloud Client Option...", end="")
 nextcloud_configure_general('config:system:set overwriteprotocol --value="https"')
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
 
+
+# Deny share for pupils
 print("Setze Schüler dürfen keine Dateien teilen....", end="")
 nextcloud_configure_general('config:app:set core shareapi_exclude_groups --value yes')
 nextcloud_configure_general('config:app:set core shareapi_exclude_groups_list --value G_Schueler')
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
 
+
+# Deactivate autocompletition for users
 print("Deaktiviere Autocompletition für Users....", end="")
 nextcloud_configure_general('config:app:set core shareapi_allow_share_dialog_user_enumeration --value no')
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
 
 
+# disable public uploads
 print("Deaktiviere öffentliches Hochladen.....", end="")
 nextcloud_configure_general('config:app:set core shareapi_allow_public_upload --value yes')
 print("erledigt!")
-time.sleep(2)
+time.sleep(5)
+
+
+# Set Region to DE
+print("Setze Phone Region auf DE.....", end="")
+nextcloud_configure_general('config:system:set default_phone_region --value=DE')
+print("erledigt!")
+time.sleep(5)
+
+
+# Set Default Login app (files), not dashboard
+print("Setze Default App auf Files.....", end="")
+nextcloud_configure_general('config:system:set defaultapp --value=files')
+print("erledigt!")
+time.sleep(5)
+
+
+# Disable knowlegde base
+print("Deaktiviere Knowlegdebase.....", end="")
+nextcloud_configure_general('config:system:set knowlegdebaseenabled --value=false')
+print("erledigt!")
+time.sleep(5)
+
+
+# Disable profile modification for user-name
+print("Deaktiviere das Erlauben zum Ändern des eigenen Profiles.....", end="")
+nextcloud_configure_general('config:system:set allow_user_to_change_display_name --value=false')
+print("erledigt!")
+time.sleep(5)
 
 print("Setup ist durchgelaufen, bitte auf folgende Seite prüfen: https://{0}".format(HostProps['VIRTUAL_HOST']))
 print("-------------")
