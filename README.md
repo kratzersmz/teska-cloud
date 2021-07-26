@@ -6,7 +6,9 @@ This project is currently in developing. You'll find the prequisites for ubuntu 
 
 # Instructions paedml-windows
 ## Add an A Record on your Domain to Octo/Sophos IP(in this case octo is 37.22.22.111)
-e.g. cloud.friedrich-realschule.de	IN	A	37.22.22.111	3600s	(01:00:00)
+e.g. cloud.hans-schule.de	IN	A	37.22.22.111	3600s	(01:00:00)
+if you want to use collabora, please setup another domain e.g. office.hans-schule.de
+Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 
 ## Prepare your Octogate:
 1. Add a DMZ Interface:  
