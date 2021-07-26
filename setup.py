@@ -33,7 +33,7 @@ ncContainerName = 'teska-cloud_app_1'
 client = docker.from_env()
 currentDir, currentFile = os.path.split(os.path.abspath(__file__))
 
-# loop over parameters
+## loop over parameters
 #parser = SafeConfigParser()
 #parser.add_argument("-fu", "--fixupdate", dest="fixupdate", default="true")
 #parser.add_argument("-u", "--update", dest="update", default="true")
