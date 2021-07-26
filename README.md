@@ -2,7 +2,7 @@
 
 # Info
 Goal of this project is to have an hybrid installer for paedml-linux/paedml-windows, serving a nextcloud installation best practice the docker way  
-This project is currently in developing. 
+This project is currently in developing. You'll find the prequisites for ubuntu server in the prerequisitsfile
 
 # Instructions paedml-windows
 ## Add an A Record on your Domain to Octo/Sophos IP(in this case octo is 37.22.22.111)
