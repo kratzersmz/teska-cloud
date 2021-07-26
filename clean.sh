@@ -8,3 +8,4 @@ rm *.tar
 rm *.env
 rm *.json
 rm .env
+rm docker-compose.override.yml

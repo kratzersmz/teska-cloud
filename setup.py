@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # mostly copied and pasted from sources on the internet.....
 # kratzer@lmz-bw.de
-# todo:
-# argument parser
-# bugfix ldap https://github.com/nextcloud/server/issues/27871
-
-
 
 import sys
 import socket
