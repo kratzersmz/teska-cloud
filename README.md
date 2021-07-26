@@ -23,6 +23,7 @@ Add an new ldapbinduser for nextcloud under _ServiceAccounts
 
 ## Add a new forward Lookup Zone in your DNS Server:
 e.g. cloud.hans-schule.de and Point the A record directly to 192.168.201.7
+
 if using collabora, point e.g. office.hans-schule.de directly with a A record to 192.168.201.7
 
 # Instructions paedml-linux
