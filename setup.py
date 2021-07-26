@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 # mostly copied and pasted from sources on the internet.....
 # kratzer@lmz-bw.de
+# todo:
+# argument parser
+# bugfix ldap https://github.com/nextcloud/server/issues/27871
+
+
+
 import sys
 import socket
 from contextlib import closing
 import subprocess
 from subprocess import PIPE
+from configparser import SafeConfigParser
 import os
 import ldap
 import docker
@@ -20,15 +27,34 @@ import shutil
 masters = dict(windows="dc01.musterschule.schule.paedml", linux="server.paedml-linux.lokal")
 mastersIP = dict(windows="10.1.1.1", linux="10.1.0.1")
 dataServers = dict(windows="sp01.musterschule.schule.paedml", linux="server.paedml-linux.lokal")
+dataServersIP = dict(windows="10.1.1.2")
 ncConfigs = dict(windows="config-win.json.tmpl", linux="config-linux.json.tmpl")
 ncConfigShareTeacher = dict(windows="teacher-shares-win.json.tmpl", linux="teacher-shares-linux.json.tmpl")
 ncConfigSharePupil = dict(windows="pupil-shares-win.json.tmpl", linux="pupil-shares-linux.json.tmpl")
 LdapPorts = dict(windows=636, linux=7636)
 smbPort = 445
 RUNNING = 'running'
-ncContainerName = 'teska-nextcloud_app_1'
+ncContainerName = 'teska-cloud_app_1'
 client = docker.from_env()
 currentDir, currentFile = os.path.split(os.path.abspath(__file__))
+
+# loop over parameters
+#parser = SafeConfigParser()
+#parser.add_argument("-fu", "--fixupdate", dest="fixupdate", default="true")
+#parser.add_argument("-u", "--update", dest="update", default="true")
+
+# do parser argument stuff
+#if fixupdate:
+  
+
+# write hosts file
+def add_hosts_file(ip,hostname):
+    if ip in open('/etc/hosts', 'r').read():
+        print("Hosts already modified")
+    else:
+        with open("/etc/hosts", "a") as myfile:
+            myfile.write("{0} {1}\n".format(ip,hostname))
+            myfile.close()
 
 
 # Clean Dir (remove *.tar)
@@ -37,6 +63,7 @@ def clean_dir():
     for file in files:
       if file.endswith(".tar"):
         os.remove(os.path.join(currentDir,file))
+
 
 # run docker-compose with filename (disabled usage of filename in code)
 def run_docker_compose(filename):
@@ -233,6 +260,7 @@ def ldap_initialize(remote, port, user, password, use_ssl=False, timeout=None):
     return True
 
 
+
 # some standard colors
 # todo fix colors
 class bcolors:
@@ -245,6 +273,21 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+"""
+# check parser stuff
+if fixupdate:
+    print("Deaktiviere das Erlauben zum Ändern des eigenen Profiles.....", end="")
+    nextcloud_configure_general('db:add-missing-indices')
+    time.sleep(2)
+    nextcloud_configure_general('db:add-missing-columns')
+    time.sleep(2)
+    nextcloud_configure_general('db:add-missing-primary-keys')
+    print("erledigt!")
+    time.sleep(5)
+    sys.exit(0)
+"""
 
 # print teska info
 try:
@@ -276,6 +319,12 @@ input("Drücke Enter um fortzufahren...")
 print("Beende etwaig laufende docker-compose Instanzen von Nextcloud....")
 down_docker_compose('docker-compose.yml')
 
+# add hosts data to hosts file
+print("Füge Hosts zu /etc/hosts hinzu")
+add_hosts_file(mastersIP["windows"], masters["windows"])
+add_hosts_file(dataServersIP["windows"], dataServers["windows"])
+add_hosts_file(mastersIP["linux"], masters["linux"])
+
 
 # clean dir
 clean_dir()
@@ -300,8 +349,10 @@ else:
         else:
             print("Bitte gib windows oder linux ein!")
 
+
+"""
 # Begin testing Basics work
-"""print(f"{bcolors.BOLD}Teste ob dc01 erreichbar via ping....")
+print(f"{bcolors.BOLD}Teste ob dc01 erreichbar via ping....")
 if ping():
     print(f"{bcolors.OKGREEN}dc01 ist erreichbar")
 else:
@@ -404,6 +455,7 @@ except:
     print("Konnte hosts.env nicht schreiben....")
 
 
+
 # Collabora Url Stuff
 if os.path.isfile("collabora.env"):
   CollaboraProps = getprops("collabora.env")
@@ -426,14 +478,14 @@ while True:
               CollaboraProps["LETSENCRYPT_EMAIL"] = CollaboraEmail
               CollaboraProps["LETSENCRYPT_HOST"] = CollaboraUrl
               CollaboraProps["VIRTUAL_HOST"] = CollaboraUrl
-              CollaboraProps["domain"] = CollaboraUrl
+              CollaboraProps["domain"] = CloudUrl
               CollaboraProps["password"] = secrets.token_urlsafe(14)
-              if os.path.isfile('docker-compose.override.yml.tmp'):
+              if os.path.isfile('docker-compose.override.yml.tmpl'):
                 try:
-                  shutil.copy2('docker-compose.override.yml.tmp', 'docker-compose.override.yml')
+                  shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')
                   print("erledigt!")
                 except:
-                  print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml kopieren')
+                  print('Kann docker-compose.override.yml.tmpl nicht nach docker-compose.override.yml kopieren')
               break
         else:
           print("Überspringe collabora Einrichtung, kann später noch händisch nachgeholt werden....!")
@@ -466,6 +518,18 @@ if CollaboraEnable:
     yml['services']['collab'][]
 """
 
+print("Personalisiere generell .env...")
+if os.path.isfile(".env"):
+    GeneralProps = getprops(".env")
+else:
+    GeneralProps = getprops(".env.tmpl")
+GeneralProps["NEXTDOMAIN"] = CloudUrl
+if CollaboraEnable:
+    GeneralProps["OFFICEDOMAIN"] = CollaboraUrl
+try:
+    writeprop(".env", GeneralProps)
+except:
+    print("Konnte .env nicht schreiben....")
 
 # DB ENVs
 if os.path.isfile("db.env"):
@@ -505,8 +569,8 @@ try:
   print('Warte 15 secs bis alle Container gestartet sind...')
   time.sleep(15)
   nextcloud_configure_general('maintenance:install --database=mysql --database-host=db --database-name=nextcloud --database-user=nextcloud --database-pass={0} --admin-user "nc-admin" --admin-pass "{1}"'.format(DbProps["MYSQL_PASSWORD"],CloudPassword))
-  print('Warte bis Nextcloud Grundinstallation komplett.....15 secs')
-  time.sleep(15)
+  print('Warte bis Nextcloud Grundinstallation komplett.....20 secs')
+  time.sleep(20)
   nextcloud_configure_general('user:disable admin')
   print('erledigt!')
 except:
@@ -646,6 +710,13 @@ print("erledigt!")
 time.sleep(5)
 
 
+# Set Webupdater Disable
+print("Setze Webupdater auf Disable.....", end="")
+nextcloud_configure_general('config:system:set upgrade.disable-web --value=true')
+print("erledigt!")
+time.sleep(5)
+
+
 # Set Default Login app (files), not dashboard
 print("Setze Default App auf Files.....", end="")
 nextcloud_configure_general('config:system:set defaultapp --value=files')
@@ -659,6 +730,19 @@ nextcloud_configure_general('config:system:set knowlegdebaseenabled --value=fals
 print("erledigt!")
 time.sleep(5)
 
+
+# Install collabora plugin if needed
+if CollaboraEnable:
+    print("Aktiviere Richdocuments Plugin(Collabora).....", end="")
+    nextcloud_configure_general('app:install richdocuments')
+    print("erledigt!")
+    time.sleep(10)
+    print("Personalisiere Collabora Plugin.....", end="")
+    nextcloud_configure_general('config:app:set richdocuments wopi_url --value=https:\/\/{0}'.format(CollaboraUrl))
+    print("erledigt!")
+    time.sleep(5)
+    #nextcloud_configure_general('config:richdocuments:activate-config')
+    #time.sleep(3)
 
 # Disable profile modification for user-name
 print("Deaktiviere das Erlauben zum Ändern des eigenen Profiles.....", end="")

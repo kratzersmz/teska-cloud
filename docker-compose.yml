@@ -2,7 +2,7 @@ version: '3'
 
 services:
   db:
-    image: mariadb
+    image: mariadb:10.5
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     restart: always
     volumes:
@@ -17,6 +17,9 @@ services:
   app:
     build: ./app
     restart: always
+    extra_hosts:
+      - "${OFFICEDOMAIN}:192.168.201.7"
+      - "${NEXTDOMAIN}:192.168.201.7"
     volumes:
       - nextcloud:/var/www/html
     environment:
@@ -42,7 +45,7 @@ services:
       - default
 
   cron:
-    image: nextcloud:22-fpm-alpine
+    image: nextcloud:21-fpm-alpine
     restart: always
     volumes:
       - nextcloud:/var/www/html
