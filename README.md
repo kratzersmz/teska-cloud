@@ -1,4 +1,12 @@
-# IN DEVELOPING, NOT READY YET
+# Alpha Code
+## ToDo
+* Fixing  bugfix ldap https://github.com/nextcloud/server/issues/27871
+* Adding configparameters for Update fixing
+* Adding deny access for Klassenarbeits-User
+* More Docu
+* Adding paedML Linux Support
+* Adding LinuxMusterNet Support
+
 
 # Info
 Goal of this project is to have an hybrid installer for paedml-linux/paedml-windows, serving a nextcloud installation best practice the docker way  
@@ -8,7 +16,7 @@ This project is currently in developing. You'll find the prequisites for ubuntu 
 ## Add an A Record on your Domain to Octo/Sophos IP(in this case octo is 37.22.22.111)
 e.g. cloud.hans-schule.de	IN	A	37.22.22.111	3600s	(01:00:00)
 
-if you want to use collabora, please setup another domain e.g. office.hans-schule.de
+if you want to use collabora, please setup another domain e.g. office.hans-schule.de and point to same IP
 Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 
 ## Prepare your Octogate:
