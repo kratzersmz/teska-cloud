@@ -13,7 +13,7 @@ This project is currently in developing.
 ![DMZ](howto/fw_portfreischaltungen.png?raw=true "DMZ Portfreischaltungen")
 
 3. Add Portweiterleitungen(SSH NOT NEEDED!):  
-![DMZ](howto/fw_portweiterleitungen.png?raw=true "DMZ Portweiterleitungen")
+![DMZ](howto/fw_portweiterleitungen.jpeg?raw=true "DMZ Portweiterleitungen")
 
 
 # Instructions paedml-linux
