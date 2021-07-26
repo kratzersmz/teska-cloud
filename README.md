@@ -37,4 +37,21 @@ e.g. cloud.hans-schule.de and Point the A record directly to 192.168.201.7
 
 if using collabora, point e.g. office.hans-schule.de directly with a A record to 192.168.201.7
 
+## HowTo run
+use an linux distri you want. this stuff was build on ubuntu-server, but any other distro with docker+docker-compose + a few python moduls should do. 
+
+Install prerequisits metioned in the prerequists file in this repo
+
+Install docker: https://docs.docker.com/engine/install/
+
+Install docker-compose: https://docs.docker.com/compose/install/
+
+git clone https://github.com/kratzersmz/teska-cloud.git
+
+cd teska-cloud
+
+start install script with:
+python3 setup.py
+
+
 # Instructions paedml-linux
