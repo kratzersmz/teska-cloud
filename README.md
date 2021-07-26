@@ -7,23 +7,13 @@ This project is currently in developing.
 # Instructions paedml-windows
 ## Prepare your Octogate:
 1. Add a DMZ Interface:  
-Netzwerk -> IP-Adressen -> Neuer Eintrag:   
-Name: DMZ  
-IP-Adresse: 192.168.201.1  
-Interface: DMZ  
-Subnetz: 24
+![DMZ](howto/fw_dmz.png?raw=true "DMZ Interface")
 
-2. Add Portfreischaltungen (all devices in DMZ can access internet on all ports):  
-Position: next iterate  
-Beschreibung: dmz_internet  
-Port: leave empty  
-Protokoll: ALL  
-Int IN: DMZ  
-Quelle: 0.0.0.0  
-In OUT: EXT  
-Ziel: 0.0.0.0  
-Action: ACCEPT
+2. Add Portfreischaltungen:  
+![DMZ](howto/fw_portfreischaltungen.png?raw=true "DMZ Portfreischaltungen")
 
+3. Add Portweiterleitungen(SSH NOT NEEDED!):  
+![DMZ](howto/fw_portweiterleitungen.png?raw=true "DMZ Portweiterleitungen")
 
 
 # Instructions paedml-linux
