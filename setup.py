@@ -383,7 +383,7 @@ else:
     print("Ldap Port "+ str(LdapPorts[PaedML]) +"/tcp von "+ masters[PaedML] +" nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationsscript nun ab!")
     sys.exit(8)
 
-
+"""
 while True:
     HostRootPw = input("Wie soll das neue root Passwort für diese virtuelle Maschine laufen(min 6 Zeichen)?: ")
     if (len(HostRootPw) >= 6):
@@ -391,7 +391,7 @@ while True:
         break
     else:
         print("Das Passwort ist keine 6 Zeichen lang!")
-
+"""
 
 # School Type for setting shares correcly
 while True:
@@ -519,10 +519,7 @@ if CollaboraEnable:
 """
 
 print("Personalisiere generell .env...")
-if os.path.isfile(".env"):
-    GeneralProps = getprops(".env")
-else:
-    GeneralProps = getprops(".env.tmpl")
+GeneralProps = getprops(".env.tmpl")
 GeneralProps["NEXTDOMAIN"] = CloudUrl
 if CollaboraEnable:
     GeneralProps["OFFICEDOMAIN"] = CollaboraUrl
@@ -603,6 +600,7 @@ print("erledigt!")
 time.sleep(5)
 
 
+
 # Files external enable
 print("aktiviere files_external plugin.....", end="")
 nextcloud_configure_general("app:enable files_external")
@@ -660,6 +658,7 @@ if PaedML == 'windows':
   #nextcloud_configure_general("files_external:import < {0}".format(teacherShares))
 print("erledigt!")
 time.sleep(5)
+
 
 # Pupil Shares
 print("Beginne mit dem einrichten der Schüler Shares.....", end="")
