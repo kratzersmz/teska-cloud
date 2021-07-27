@@ -744,6 +744,15 @@ nextcloud_configure_general('config:system:set allow_user_to_change_display_name
 print("erledigt!")
 time.sleep(5)
 
+# Disable special apps
+print("Deaktiviere folgende apps: weather, announces, firstrun, federation, survey.....", end="")
+nextcloud_configure_general('app:disable weather_status updatenotification firstrunwizard federation nextcloud_announcements survey_client')
+print("erledigt!")
+time.sleep(5)
+
+## todo
+# Limit special Apps to special groups
+
 print("Setup ist durchgelaufen, bitte auf folgende Seite prüfen: https://{0}".format(HostProps['VIRTUAL_HOST']))
 print("-------------")
 
