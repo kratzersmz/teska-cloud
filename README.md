@@ -10,10 +10,11 @@
 
 # Info
 Goal of this project is to have an hybrid installer for paedml-linux/paedml-windows, serving a nextcloud installation best practice the docker way  
-This project is currently in developing. You'll find the prequisites for ubuntu server in the prerequisitsfile
+This project is currently in developing. You'll find the prequisites for ubuntu server in the prerequisitsfile. Uses https://github.com/nextcloud/docker as best practice source.
 
 # Instructions paedml-windows
-## Add an A Record on your Domain to Octo/Sophos IP(in this case octo is 37.22.22.111)
+## Add an A Record on your public Domain
+In this example Octo/Sophos public IP is 37.22.22.111
 e.g. cloud.hans-schule.de	IN	A	37.22.22.111	3600s	(01:00:00)
 
 if you want to use collabora, please setup another domain e.g. office.hans-schule.de and point to same IP
@@ -21,7 +22,9 @@ Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 
 
 ## Prepare your Octogate:
-1. Add a DMZ Interface:  
+1. Add a DMZ Interface:
+In ESXi add second network interface to a portgroup hanging on an vswitch without uplink
+
 ![DMZ](howto/fw_dmz.png?raw=true "DMZ Interface")
 
 2. Add Portfreischaltungen:  
