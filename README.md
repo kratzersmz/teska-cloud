@@ -19,6 +19,7 @@ e.g. cloud.hans-schule.de	IN	A	37.22.22.111	3600s	(01:00:00)
 if you want to use collabora, please setup another domain e.g. office.hans-schule.de and point to same IP
 Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 
+
 ## Prepare your Octogate:
 1. Add a DMZ Interface:  
 ![DMZ](howto/fw_dmz.png?raw=true "DMZ Interface")
@@ -28,6 +29,15 @@ Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 
 3. Add Portweiterleitungen(SSH NOT NEEDED!):  
 ![DMZ](howto/fw_portweiterleitungen.jpg?raw=true "DMZ Portweiterleitungen")
+
+## Prepare your dockerhost(nextcloud):
+IP: 192.168.201.7
+
+Subnet: 255.255.255.0
+
+Gateway: 192.168.201.1
+
+DNS: 8.8.8.8
 
 ## Prepare your Ldapbind user
 Add an new ldapbinduser for nextcloud under _ServiceAccounts
