@@ -3,6 +3,7 @@
 * Fixing  bugfix ldap https://github.com/nextcloud/server/issues/27871
 * Adding configparameters for Update fixing
 * Adding deny access for Klassenarbeits-User
+* Adding loop over Schooltype to support multiple mandants
 * More Docu
 * Adding paedML Linux Support
 * Adding LinuxMusterNet Support
