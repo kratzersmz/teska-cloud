@@ -27,7 +27,7 @@ Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 ![DMZ](howto/fw_esxi_switch_portgruppe.jpg?raw=true "DMZ Interface")
 
 2. Edit Octo Settings and Add this portgroup to second network Adapter (ESXi)
-![DMZ](howto/fw_esxi_zuweisung.jpg?raw=true "DMZ Interface")
+![DMZ](howto/fw_zuweisung.jpg?raw=true "DMZ Interface")
 
 3. Add a DMZ Interface:
 In ESXi add second network interface to a portgroup hanging on an vswitch without uplink
