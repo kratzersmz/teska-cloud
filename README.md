@@ -23,15 +23,20 @@ Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 
 
 ## Prepare your Octogate:
-1. Add a DMZ Interface:
+1. Add a Dummy switch without uplink and bind an portgroup to it (ESXi)
+![DMZ](howto/fw_esxi_switch_portgruppe.jpg?raw=true "DMZ Interface")
+
+2. Edit Octo Settings and Add this portgroup to second network Adapter (ESXi)
+![DMZ](howto/fw_esxi_zuweisung.jpg?raw=true "DMZ Interface")
+
+3. Add a DMZ Interface:
 In ESXi add second network interface to a portgroup hanging on an vswitch without uplink
+![DMZ](howto/fw_dmz.jpg?raw=true "DMZ Interface")
 
-![DMZ](howto/fw_dmz.png?raw=true "DMZ Interface")
-
-2. Add Portfreischaltungen:  
+4. Add Portfreischaltungen:  
 ![DMZ](howto/fw_portfreischaltungen.png?raw=true "DMZ Portfreischaltungen")
 
-3. Add Portweiterleitungen(SSH NOT NEEDED!):  
+5. Add Portweiterleitungen(SSH NOT NEEDED!):  
 ![DMZ](howto/fw_portweiterleitungen.jpg?raw=true "DMZ Portweiterleitungen")
 
 ## Prepare your dockerhost(nextcloud):
