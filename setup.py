@@ -518,6 +518,8 @@ GeneralProps = getprops(".env.tmpl")
 GeneralProps["NEXTDOMAIN"] = CloudUrl
 if CollaboraEnable:
     GeneralProps["OFFICEDOMAIN"] = CollaboraUrl
+else:
+    GeneralProps["OFFICEDOMAIN"] = "non.tes-ka.de"
 try:
     writeprop(".env", GeneralProps)
 except:
