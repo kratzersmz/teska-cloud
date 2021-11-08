@@ -13,6 +13,12 @@
 Goal of this project is to have an hybrid installer for paedml-linux/paedml-windows, serving a nextcloud installation best practice the docker way  
 This project is currently in developing. You'll find the prequisites for ubuntu server in the prerequisitsfile. Uses https://github.com/nextcloud/docker as best practice source.
 
+Benefits:
+- lets encrypt
+- collabora installation
+- best practice docker-compose way
+- all automated in an interactive python script
+
 # Instructions paedml-windows
 ## Add an A Record on your public Domain
 In this example Octo/Sophos public IP is 37.22.22.111
