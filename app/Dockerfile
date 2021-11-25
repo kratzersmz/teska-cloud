@@ -1,9 +1,8 @@
-FROM nextcloud:21-fpm-alpine
+FROM nextcloud:22-fpm-alpine
 
 RUN set -ex; \
     \
     apk add --no-cache \
-        imagemagick \
         procps \
         samba-client \
     ;

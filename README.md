@@ -78,5 +78,9 @@ cd teska-cloud
 start install script with:
 python3 setup.py
 
+## HowTo run of teska-esxi-vm
+* navigate to /home/docker/teska-cloud
+* bash initial-setup.sh
+
 
 # Instructions paedml-linux
