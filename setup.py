@@ -694,7 +694,7 @@ time.sleep(5)
 
 # disable public uploads
 print("Deaktiviere öffentliches Hochladen.....", end="")
-nextcloud_configure_general('config:app:set core shareapi_allow_public_upload --value yes')
+nextcloud_configure_general('config:app:set core shareapi_allow_public_upload --value no')
 print("erledigt!")
 time.sleep(5)
 
