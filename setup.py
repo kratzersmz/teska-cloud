@@ -7,7 +7,6 @@ import socket
 from contextlib import closing
 import subprocess
 from subprocess import PIPE
-from configparser import SafeConfigParser
 import os
 import ldap
 import docker
@@ -17,6 +16,8 @@ import time
 import json
 import yaml
 import shutil
+import argparse
+from git import Repo
 
 # consts
 masters = dict(windows="dc01.musterschule.schule.paedml", linux="server.paedml-linux.lokal")
@@ -32,8 +33,27 @@ RUNNING = 'running'
 ncContainerName = 'teska-cloud_app_1'
 client = docker.from_env()
 currentDir, currentFile = os.path.split(os.path.abspath(__file__))
+cloudGitRepo = 'https://github.com/kratzersmz/teska-cloud.git'
 
 ## loop over parameters
+parser = argparse.ArgumentParser(description='Process Args')
+parser.add_argument('-p','--pull', action='store_true', help='Get latest Data from github repo', required=False)
+parser.add_argument('--sum', dest='accumulate', action='store_const',
+                            const=sum, default=max,
+                                                help='sum the integers (default: find the max)')
+args = parser.parse_args()
+
+if args.pull:
+    print('Hole letzte Daten vom git repo {0}'.format(cloudGitRepo))
+    repo = Repo()
+    repo.git.add(u=True)
+    repo.index.commit('Mein local commit vor pull from setup.py')
+    repo.pull()
+
+    sys.exit(0)
+   
+
+
 #parser = SafeConfigParser()
 #parser.add_argument("-fu", "--fixupdate", dest="fixupdate", default="true")
 #parser.add_argument("-u", "--update", dest="update", default="true")

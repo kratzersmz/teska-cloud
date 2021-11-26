@@ -1,3 +1,3 @@
-apt install python3-docker python3-ldap python-configparser
+apt install python3-docker python3-ldap python3-git
 
 install docker and docker-compose
