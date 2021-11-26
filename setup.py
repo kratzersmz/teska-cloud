@@ -48,7 +48,7 @@ if args.pull:
     repo = Repo()
     repo.git.add(u=True)
     repo.index.commit('Mein local commit vor pull from setup.py')
-    repo.pull()
+    repo.git.pull()
 
     sys.exit(0)
    
