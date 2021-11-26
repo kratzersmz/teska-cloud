@@ -37,19 +37,19 @@ cloudGitRepo = 'https://github.com/kratzersmz/teska-cloud.git'
 
 ## loop over parameters
 parser = argparse.ArgumentParser(description='Process Args')
-parser.add_argument('-p','--pull', action='store_true', help='Get latest Data from github repo', required=False)
-parser.add_argument('--sum', dest='accumulate', action='store_const',
-                            const=sum, default=max,
-                                                help='sum the integers (default: find the max)')
+parser.add_argument('-p','--pull', action='store_true', help='get latest Data from github repo, use with care', required=False)
+parser.add_argument('-fu','--fixupdate', action='store_true', help='will fix Database indices and others...', required=False)
+parser.add_argument('-u','--update', action='store_true', help='will update your nextcloud instance', required=False)
 args = parser.parse_args()
 
 if args.pull:
     print('Hole letzte Daten vom git repo {0}'.format(cloudGitRepo))
     repo = Repo()
     repo.git.add(u=True)
+    print('Commite aktuelle config...')
     repo.index.commit('Mein local commit vor pull from setup.py')
     repo.git.pull()
-
+    repo.heads.master.checkout()
     sys.exit(0)
    
 
