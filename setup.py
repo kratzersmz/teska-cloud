@@ -48,6 +48,7 @@ if args.pull:
     repo.git.add(u=True)
     print('Commite aktuelle config...')
     repo.index.commit('Mein local commit vor pull from setup.py')
+    repo.git.reset('--hard')
     repo.git.pull()
     repo.heads.main.checkout()
     sys.exit(0)
