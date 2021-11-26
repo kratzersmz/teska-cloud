@@ -36,6 +36,9 @@ ncContainerName = 'teska-cloud_app_1'
 client = docker.from_env()
 currentDir, currentFile = os.path.split(os.path.abspath(__file__))
 cloudGitRepo = 'https://github.com/kratzersmz/teska-cloud.git'
+currentIP = dict(windows='192.168.201.7')
+dockerComposeOffice = dict(collabora='docker-compose-collabora.override.yml.tmpl', onlyoffice='docker-compose-onlyoffice.override.yml.tmpl')
+
 
 ## loop over parameters
 parser = argparse.ArgumentParser(description='Process Args')
@@ -54,7 +57,6 @@ if args.pull:
     repo.git.pull()
     repo.heads.main.checkout()
     sys.exit(0)
-   
 
 
 #parser = SafeConfigParser()
@@ -343,7 +345,6 @@ add_hosts_file(mastersIP["windows"], masters["windows"])
 add_hosts_file(dataServersIP["windows"], dataServers["windows"])
 add_hosts_file(mastersIP["linux"], masters["linux"])
 
-
 # clean dir
 clean_dir()
 
@@ -473,6 +474,74 @@ except:
     print("Konnte hosts.env nicht schreiben....")
 
 
+# check if collabora or onlyoffice should be installed
+# defaulting to false
+OnlyofficeEnable = False
+CollaboraEnable = False
+while True:
+        OfficeEnable = default_input("Soll eine Onlyoffice oder Collabora Instanz eingerichtet werden? O für Onlyoffice, C für Collabora, N für nix", "J")
+        if OfficeEnable.lower() in ['c', 'o']:
+            if OfficeEnable.lower() in ['c']:
+                print('Es wurde eine Collabora Installation gewünscht')
+                OnlyOfficeEnable = True
+            if OfficeEnable.lower() in ['o']:
+                print('Es wurde eine Onlyoffice Installation gewünscht')
+                CollaboraEnable = True
+        else:
+            print('Es wurde keine Office Installation gewünscht oder eine falsche Taste gedrückt')
+            
+if os.path.isfile("office.env"):
+  OfficeProps = getprops("office.env")
+else:
+  OfficeProps = getprops("office.env.tmpl")
+
+if CollaboraEnable or OnlyofficeEnable:
+          OfficeUrl = default_input("Wie ist die öffentliche domain/subdomain deiner Office instanz(ohne https://)",
+                                 OfficeProps["VIRTUAL_HOST"])
+          if len(OfficeUrl) < 1:
+              print("Ungültige Eingabe(zu wenig Zeichen)!")
+          elif not '.' in OfficeUrl:
+              print("Ungültige Eingabe(für eine richtige domain fehlt ein . in der domain!")
+          elif HostProps["VIRTUAL_HOST"].lower() == OfficeUrl.lower():
+              print("Office Domain kann nicht die gleiche wie die Nextcloud Domain sein!")
+          else:
+              OfficeEmail = 'admin@' + OfficeUrl
+              OfficeProps["LETSENCRYPT_EMAIL"] = OfficeEmail
+              OfficeProps["LETSENCRYPT_HOST"] = OfficeUrl
+              OfficeProps["VIRTUAL_HOST"] = OfficeUrl
+              # Doing different stuff for differnt Installations
+              if CollaboraEnable:
+                  OfficeProps["domain"] = CloudUrl
+                  OfficeProps["password"] = secrets.token_urlsafe(14)
+                  OfficeProps["VIRTUAL_PORT"] = "9980"
+                  OfficeWillInstall = "collabora"
+              if OnlyofficeEnable:
+                  OfficeProps["JWT_ENABLED"] = "true"
+                  OfficeProps["JWT_SECRET"] = secrets.token_urlsafe(14)
+                  OfficeProps["VIRTUAL_PORT"] = "80"
+                  add_hosts_file(currentIP["windows"], CollaboraUrl)
+                  OfficeWillInstall = "onlyoffice"
+              if os.path.isfile(dockerComposeOffice["OfficeWillInstall"]):
+                try:
+                  shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')
+                  print("erledigt!")
+                except:
+                  print('Kann docker-compose.override.yml.tmpl nicht nach docker-compose.override.yml kopieren')
+              break
+        else:
+          print("Überspringe collabora Einrichtung, kann später noch händisch nachgeholt werden....!")
+          if os.path.isfile('docker-compose.override.yml'):
+              try:
+                  os.rename('docker-compose.override.yml', 'docker-compose.override.yml.tmp2')
+                  print("erledigt!")
+              except:
+                  print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml2 umbennen')
+          break
+
+
+if CollaboraEnable:
+    print("Personalisiere collabora.env...",end="")
+
 
 # Collabora Url Stuff
 if os.path.isfile("collabora.env"):
@@ -498,6 +567,7 @@ while True:
               CollaboraProps["VIRTUAL_HOST"] = CollaboraUrl
               CollaboraProps["domain"] = CloudUrl
               CollaboraProps["password"] = secrets.token_urlsafe(14)
+              add_hosts_file(currentIP["windows"], CollaboraUrl)
               if os.path.isfile('docker-compose.override.yml.tmpl'):
                 try:
                   shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')

@@ -55,7 +55,7 @@ Gateway: 192.168.201.1
 DNS: 8.8.8.8
 
 ## Prepare your Ldapbind user
-Add an new ldapbinduser for nextcloud under _ServiceAccounts
+Add an new ldapbinduser for nextcloud under _ServiceAccounts. Please copy ldapbinduser to it inherits its attributes.
 
 ## Add a new forward Lookup Zone in your DNS Server:
 e.g. cloud.hans-schule.de and Point the A record directly to 192.168.201.7
@@ -81,6 +81,10 @@ python3 setup.py
 ## HowTo run of teska-esxi-vm
 * navigate to /home/docker/teska-cloud
 * bash initial-setup.sh
+
+## Caveats
+* if setup succeeds without errors and you'll get an Internal Server error when loggin into your new cloud, mostly ldapbinduser is wrong setup (no ldap query attributes or wrong pw or port is closed in firewall)
+* if login succeeds to nextcloud and there are no shares visible, check the rights on Tausch. In some cases G_Lehrer seemed to missed
 
 
 # Instructions paedml-linux
