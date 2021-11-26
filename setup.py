@@ -2,12 +2,14 @@
 # mostly copied and pasted from sources on the internet.....
 # kratzer@lmz-bw.de
 
-import sys
-import socket
+
+from git import Repo
 from contextlib import closing
-import subprocess
 from subprocess import PIPE
 import os
+import subprocess
+import sys
+import socket
 import ldap
 import docker
 import tarfile
@@ -17,7 +19,7 @@ import json
 import yaml
 import shutil
 import argparse
-from git import Repo
+
 
 # consts
 masters = dict(windows="dc01.musterschule.schule.paedml", linux="server.paedml-linux.lokal")
