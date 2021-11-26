@@ -49,7 +49,7 @@ if args.pull:
     print('Commite aktuelle config...')
     repo.index.commit('Mein local commit vor pull from setup.py')
     repo.git.pull()
-    repo.heads.master.checkout()
+    repo.heads.main.checkout()
     sys.exit(0)
    
 
