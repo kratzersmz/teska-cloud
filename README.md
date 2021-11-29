@@ -84,7 +84,7 @@ python3 setup.py
 ## teska cloud VM
 * navigate to /home/docker/teska-cloud 
 * python3 setup.py --pull (alterantively you can do git pull && git reset --hard)
-
+* python3 setup.py 
 
 ## Caveats
 * if setup succeeds without errors and you'll get an Internal Server error when loggin into your new cloud, mostly ldapbinduser is wrong setup (no ldap query attributes or wrong pw or port is closed in firewall)
