@@ -81,6 +81,11 @@ python3 setup.py
 * -fu, --fixupdate -> If after updates in webinterface is showing some Info about indices and Databases which need to fixed. This is done with this argument
 * -u, --update -> will update your installation to latest, currently  not implemented
 
+## teska cloud VM
+* navigate to /home/docker/teska-cloud 
+* python3 setup.py --pull (alterantively you can do git pull && git reset --hard)
+
+
 ## Caveats
 * if setup succeeds without errors and you'll get an Internal Server error when loggin into your new cloud, mostly ldapbinduser is wrong setup (no ldap query attributes or wrong pw or port is closed in firewall)
 * if login succeeds to nextcloud and there are no shares visible, check the rights on Tausch. In some cases G_Lehrer seemed to missed
