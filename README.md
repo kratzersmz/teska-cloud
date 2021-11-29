@@ -1,7 +1,5 @@
 # Alpha Code
 ## ToDo
-* Adding support for onlyoffice
-* Adding configparameters for Update fixing
 * Adding deny access for Klassenarbeits-User
 * Adding loop over Schooltype to support multiple mandants
 * More Docu
@@ -42,7 +40,7 @@ In ESXi add second network interface to a portgroup hanging on an vswitch withou
 4. Add Portfreischaltungen:  
 ![DMZ](howto/fw_portfreischaltungen.png?raw=true "DMZ Portfreischaltungen")
 
-5. Add Portweiterleitungen(SSH NOT NEEDED!):  
+5. Add Portweiterleitungen(SSH, DNS, ICMP NOT NEEDED ANYMORE!):  
 ![DMZ](howto/fw_portweiterleitungen.jpg?raw=true "DMZ Portweiterleitungen")
 
 ## Prepare your dockerhost(nextcloud):
@@ -78,9 +76,10 @@ cd teska-cloud
 start install script with:
 python3 setup.py
 
-## HowTo run of teska-esxi-vm
-* navigate to /home/docker/teska-cloud
-* bash initial-setup.sh
+## Parameters for setup.py
+* -p, --pull -> get latest data from git repo
+* -fu, --fixupdate -> If after updates in webinterface is showing some Info about indices and Databases which need to fixed. This is done with this argument
+* -u, --update -> will update your installation to latest, currently  not implemented
 
 ## Caveats
 * if setup succeeds without errors and you'll get an Internal Server error when loggin into your new cloud, mostly ldapbinduser is wrong setup (no ldap query attributes or wrong pw or port is closed in firewall)

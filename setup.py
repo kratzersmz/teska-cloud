@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # mostly copied and pasted from sources on the internet.....
 # kratzer@lmz-bw.de
-
-
-from git import Repo
-from contextlib import closing
-from subprocess import PIPE
 import os
 import subprocess
 import sys
@@ -19,17 +14,20 @@ import json
 import yaml
 import shutil
 import argparse
+from git import Repo
+from contextlib import closing
+from subprocess import PIPE
 
 
 # consts
-masters = dict(windows="dc01.musterschule.schule.paedml", linux="server.paedml-linux.lokal")
-mastersIP = dict(windows="10.1.1.1", linux="10.1.0.1")
-dataServers = dict(windows="sp01.musterschule.schule.paedml", linux="server.paedml-linux.lokal")
-dataServersIP = dict(windows="10.1.1.2")
-ncConfigs = dict(windows="config-win.json.tmpl", linux="config-linux.json.tmpl")
-ncConfigShareTeacher = dict(windows="teacher-shares-win.json.tmpl", linux="teacher-shares-linux.json.tmpl")
-ncConfigSharePupil = dict(windows="pupil-shares-win.json.tmpl", linux="pupil-shares-linux.json.tmpl")
-LdapPorts = dict(windows=636, linux=7636)
+masters = dict(windows="dc01.musterschule.schule.paedml", linux="server.paedml-linux.lokal", lmn="server.linuxmuster.lan")
+mastersIP = dict(windows="10.1.1.1", linux="10.1.0.1", lmn="10.0.0.1")
+dataServers = dict(windows="sp01.musterschule.schule.paedml", linux="server.paedml-linux.lokal", lmn="server.linuxmuster.lan")
+dataServersIP = dict(windows="10.1.1.2", linux="10.1.0.1", lmn="10.0.0.1")
+ncConfigs = dict(windows="config-win.json.tmpl", linux="config-linux.json.tmpl", lmn="config-lmn.json.tmpl")
+ncConfigShareTeacher = dict(windows="teacher-shares-win.json.tmpl", linux="teacher-shares-linux.json.tmpl", lmn="teacher-shares-lmn.json.tmpl")
+ncConfigSharePupil = dict(windows="pupil-shares-win.json.tmpl", linux="pupil-shares-linux.json.tmpl", lmn="pupil-shares-linux.json.tmpl")
+LdapPorts = dict(windows=636, linux=7636, lmn=636)
 smbPort = 445
 RUNNING = 'running'
 ncContainerName = 'teska-cloud_app_1'
@@ -37,35 +35,21 @@ client = docker.from_env()
 currentDir, currentFile = os.path.split(os.path.abspath(__file__))
 cloudGitRepo = 'https://github.com/kratzersmz/teska-cloud.git'
 currentIP = dict(windows='192.168.201.7')
-dockerComposeOffice = dict(collabora='docker-compose-collabora.override.yml.tmpl', onlyoffice='docker-compose-onlyoffice.override.yml.tmpl')
+dockerComposeOffice = dict(collabora='docker-compose-collabora.override.yml', onlyoffice='docker-compose-onlyoffice.override.yml')
 
 
-## loop over parameters
-parser = argparse.ArgumentParser(description='Process Args')
-parser.add_argument('-p','--pull', action='store_true', help='get latest Data from github repo, use with care', required=False)
-parser.add_argument('-fu','--fixupdate', action='store_true', help='will fix Database indices and others...', required=False)
-parser.add_argument('-u','--update', action='store_true', help='will update your nextcloud instance', required=False)
-args = parser.parse_args()
+# some standard colors
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-if args.pull:
-    print('Hole letzte Daten vom git repo {0}'.format(cloudGitRepo))
-    repo = Repo()
-    repo.git.add(u=True)
-    print('Commite aktuelle config...')
-    repo.index.commit('Mein local commit vor pull from setup.py')
-    repo.git.reset('--hard')
-    repo.git.pull()
-    repo.heads.main.checkout()
-    sys.exit(0)
-
-
-#parser = SafeConfigParser()
-#parser.add_argument("-fu", "--fixupdate", dest="fixupdate", default="true")
-#parser.add_argument("-u", "--update", dest="update", default="true")
-
-# do parser argument stuff
-#if fixupdate:
-  
 
 # write hosts file
 def add_hosts_file(ip,hostname):
@@ -281,24 +265,37 @@ def ldap_initialize(remote, port, user, password, use_ssl=False, timeout=None):
 
 
 
-# some standard colors
-# todo fix colors
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+## loop over parameters
+parser = argparse.ArgumentParser(description='Process Args')
+parser.add_argument('-p','--pull', action='store_true', help='get latest Data from github repo, use with care', required=False)
+parser.add_argument('-fu','--fixupdate', action='store_true', help='will fix Database indices and others...', required=False)
+parser.add_argument('-u','--update', action='store_true', help='will update your nextcloud instance', required=False)
+args = parser.parse_args()
 
-
+if args.pull:
+    print('Hole letzte Daten vom git repo {0}'.format(cloudGitRepo))
+    process = subprocess.Popen(["git","add", "-A"], stdout=subprocess.PIPE)
+    output = process.communicate()[0]
+    process = subprocess.Popen(["git","commit","-am","'committed'"], stout=subprocess.PIPE)
+    output = process.communicate()[0]
+    process = subprocess.Popen(["git", "fetch"], stdout=subprocess.PIPE)
+    output = process.communicate()[0]
+    process = subprocess.Popen(["git", "reset", "--hard", "origin/main"], stdout=subprocess.PIPE)
+    output = process.communicate()[0]
+    sys.exit(0)
 """
-# check parser stuff
-if fixupdate:
-    print("Deaktiviere das Erlauben zum Ändern des eigenen Profiles.....", end="")
+    repo = Repo()
+    repo.git.add(u=True)
+    print('Commite aktuelle config...')
+    repo.index.commit('Mein local commit vor pull from setup.py')
+    repo.git.reset('--hard')
+    repo.git.pull()
+    repo.heads.main.checkout()
+    sys.exit(0)
+"""
+
+if args.fixupdate:
+    print("Update die DB missing-indices, columns, primary keys. Dies kann ein paar Minuten dauern.....", end="")
     nextcloud_configure_general('db:add-missing-indices')
     time.sleep(2)
     nextcloud_configure_general('db:add-missing-columns')
@@ -307,7 +304,10 @@ if fixupdate:
     print("erledigt!")
     time.sleep(5)
     sys.exit(0)
-"""
+
+if args.update:
+    print("Update installation, not yet implemented")
+
 
 # print teska info
 try:
@@ -329,10 +329,8 @@ except:
 
 # General Info
 print("Bitte notiere Dir das NEUE root Passwort")
-print(
-    "Die Urls für Nextcloud/collabora müssen vorher beim Domainhoster eingetragen werden")
-print(
-    "Bevor hier weiter gemacht wird, vergewissere Dich, dass die Firewall wie lt. Anleitung konfiguriert ist.")
+print("Die Urls für Nextcloud/collabora müssen vorher beim Domainhoster eingetragen werden")
+print("Bevor hier weiter gemacht wird, vergewissere Dich, dass die Firewall wie lt. Anleitung konfiguriert ist.")
 input("Drücke Enter um fortzufahren...")
 
 # bring down running docker-compose instance
@@ -350,67 +348,38 @@ clean_dir()
 
 
 # check if paedml linux or paedml windows
-print("Checking if paedml-linux or paedml-windows")
-if ping(masters['linux']):
-    PaedML = "linux"
-    print("Eine PaedML Linux gefunden!")
-elif ping(masters['windows']):
-    if ping(dataServers['windows']):
+print("Prüfe ob eine paedML Win/Linux oder eine LMN per smb+ldaps erreichbar...")
+if check_socket(masters["linux"], smbPort):
+    print("PaedML Linux gefunden, prüfe ldaps Port...")
+    if check_socket(masters["linux"], LdapPorts):
+        print("Ldaps Port is auch offen, sehr gut!")
+        PaedML = "linux"
+    else:
+        print("Ldaps Port nicht offen, breche Setup ab. Bitte Ports an Firewall richtig freischalten oder ander Probleme ausschließen!")
+        sys.exit(4)
+
+elif check_socket(dataServers["windows"], smbPort):
+    print("PaedML Windows gefunden, prüfe ldaps Port...")
+    if check_socket(masters["windows"], LdapPorts):
+        print("Ldaps Port is auch offen, sehr gut!")
         PaedML = "windows"
-        print("Eine PaedML Windows gefunden!")
-else:
-    while True:
-        PaedML = input("Kann die paedML Version nicht selbst bestimmen. Bitte gib selbst an ob windows oder linux(windows/linux): ")
-        if PaedML.lower() in ['windows', 'win', 'w']:
-            PaedML = "windows"
-        elif PaedML.lower() in ['linux', 'li', 'l']:
-            PaedML = "linux"
-        else:
-            print("Bitte gib windows oder linux ein!")
+    else:
+        print("Ldaps Port nicht offen, breche Setup ab. Bitte Ports an Firewall richtig freischalten oder ander Probleme ausschließen!")
+        sys.exit(4)
 
+elif check_socket(masters["lmn"], smbPort):
+    print("LMN gefunden, prüfe ldaps Port...")
+    if check_socket(masters["lmn"], LdapPorts):
+        print("Ldaps Port is auch offen, sehr gut!")
+        PaedML = "lmn"
+    else:
+        print("Ldaps Port nicht offen, breche Setup ab. Bitte Ports an Firewall richtig freischalten oder ander Probleme ausschließen!")
+        sys.exit(4)
 
-"""
-# Begin testing Basics work
-print(f"{bcolors.BOLD}Teste ob dc01 erreichbar via ping....")
-if ping():
-    print(f"{bcolors.OKGREEN}dc01 ist erreichbar")
 else:
-    print(
-        "dc01 ist nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationscript nun ab!")
+    print("Kann paedML win/linux oder lmn nicht finden. Das können Firewallprobleme sein oder ESXi Verdrahtungsprobleme....breche ab!")
     sys.exit(5)
 
-print(f"{bcolors.BOLD}Teste ob sp01 erreichbar via ping....")
-if ping(sp01):
-    print(f"{bcolors.OKGREEN}sp01 ist erreichbar")
-else:
-    print(
-        "sp01 ist nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationscript nun ab!")
-    sys.exit(6)
-"""
-
-print("Teste grundsätzlich ob der SMB Port 445/tcp von " + dataServers[PaedML] + " erreichbar.......")
-if check_socket(dataServers[PaedML], smbPort):
-    print("SMB Port 445/tcp " + dataServers[PaedML] +" erreichbar.")
-else:
-    print("SMB Port 445/tcp " + dataServers[PaedML] +" nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationsscript nun ab!")
-    sys.exit(7)
-
-print("Teste grundsätzlich ob der ldap Port " +  str(LdapPorts[PaedML]) +"/tcp auf " + masters[PaedML] + " erreichbar.......")
-if check_socket(masters[PaedML], LdapPorts[PaedML]):
-    print("Ldap Port "+ str(LdapPorts[PaedML]) + "/tcp von " + masters[PaedML] +" erreichbar.")
-else:
-    print("Ldap Port "+ str(LdapPorts[PaedML]) +"/tcp von "+ masters[PaedML] +" nicht erreichbar. Bitte prüfe Firewall Regeln/Verbindungen/DNS. Breche Installationsscript nun ab!")
-    sys.exit(8)
-
-"""
-while True:
-    HostRootPw = input("Wie soll das neue root Passwort für diese virtuelle Maschine laufen(min 6 Zeichen)?: ")
-    if (len(HostRootPw) >= 6):
-        setpassword('root',HostRootPw)
-        break
-    else:
-        print("Das Passwort ist keine 6 Zeichen lang!")
-"""
 
 # School Type for setting shares correcly
 while True:
@@ -478,24 +447,34 @@ except:
 # defaulting to false
 OnlyofficeEnable = False
 CollaboraEnable = False
+OfficeInstallEnable = False
 while True:
-        OfficeEnable = default_input("Soll eine Onlyoffice oder Collabora Instanz eingerichtet werden? O für Onlyoffice, C für Collabora, N für nix", "J")
-        if OfficeEnable.lower() in ['c', 'o']:
-            if OfficeEnable.lower() in ['c']:
-                print('Es wurde eine Collabora Installation gewünscht')
-                OnlyOfficeEnable = True
-            if OfficeEnable.lower() in ['o']:
-                print('Es wurde eine Onlyoffice Installation gewünscht')
-                CollaboraEnable = True
+    OfficeEnable = default_input("Soll eine Onlyoffice oder Collabora Instanz eingerichtet werden? O für Onlyoffice, C für Collabora, N für nix", "J")
+    if OfficeEnable.lower() in ['c', 'o']:
+        OfficeInstallEnable = True
+        if OfficeEnable.lower() in ['c']:
+            print('Es wurde eine Collabora Installation gewünscht')
+            OnlyOfficeEnable = True
+        if OfficeEnable.lower() in ['o']:
+            print('Es wurde eine Onlyoffice Installation gewünscht')
+            CollaboraEnable = True
         else:
             print('Es wurde keine Office Installation gewünscht oder eine falsche Taste gedrückt')
+            print("Überspringe collabora Einrichtung, kann später noch händisch nachgeholt werden....!")
+            if os.path.isfile('docker-compose.override.yml'):
+                try:
+                    os.rename('docker-compose.override.yml', 'docker-compose.override.yml.tmp2')
+                    print("erledigt!")
+                except:
+                    print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml2 umbennen')
+                break
             
-if os.path.isfile("office.env"):
-  OfficeProps = getprops("office.env")
-else:
-  OfficeProps = getprops("office.env.tmpl")
+        if os.path.isfile("office.env"):
+            OfficeProps = getprops("office.env")
+        else:
+            OfficeProps = getprops("office.env.tmpl")
 
-if CollaboraEnable or OnlyofficeEnable:
+        if CollaboraEnable or OnlyofficeEnable:
           OfficeUrl = default_input("Wie ist die öffentliche domain/subdomain deiner Office instanz(ohne https://)",
                                  OfficeProps["VIRTUAL_HOST"])
           if len(OfficeUrl) < 1:
@@ -521,78 +500,22 @@ if CollaboraEnable or OnlyofficeEnable:
                   OfficeProps["VIRTUAL_PORT"] = "80"
                   add_hosts_file(currentIP["windows"], CollaboraUrl)
                   OfficeWillInstall = "onlyoffice"
-              if os.path.isfile(dockerComposeOffice["OfficeWillInstall"]):
-                try:
-                  shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')
-                  print("erledigt!")
-                except:
-                  print('Kann docker-compose.override.yml.tmpl nicht nach docker-compose.override.yml kopieren')
-              break
-        else:
-          print("Überspringe collabora Einrichtung, kann später noch händisch nachgeholt werden....!")
-          if os.path.isfile('docker-compose.override.yml'):
-              try:
-                  os.rename('docker-compose.override.yml', 'docker-compose.override.yml.tmp2')
-                  print("erledigt!")
-              except:
-                  print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml2 umbennen')
-          break
-
-
-if CollaboraEnable:
-    print("Personalisiere collabora.env...",end="")
-
-
-# Collabora Url Stuff
-if os.path.isfile("collabora.env"):
-  CollaboraProps = getprops("collabora.env")
-else:
-  CollaboraProps = getprops("collabora.env.tmpl")
-while True:
-        CollaboraEnable = default_input("Soll eine Collabora Instanz eingerichtet werden? (J/n)", "J")
-        if CollaboraEnable.lower() in ['j', 'ja', 'y', 'yes']:
-          CollaboraEnable = True
-          CollaboraUrl = default_input("Wie ist die öffentliche domain/subdomain deiner collabora instanz(ohne https://)",
-                                 CollaboraProps["VIRTUAL_HOST"])
-          if len(CollaboraUrl) < 1:
-              print("Ungültige Eingabe(zu wenig Zeichen)!")
-          elif not '.' in CollaboraUrl:
-              print("Ungültige Eingabe(für eine richtige domain fehlt ein . in der domain!")
-          elif HostProps["VIRTUAL_HOST"].lower() == CollaboraUrl.lower():
-              print("Collabora Domain kann nicht die gleiche wie die Nextcloud Domain sein!")
-          else:
-              CollaboraEmail = 'admin@' + CollaboraUrl
-              CollaboraProps["LETSENCRYPT_EMAIL"] = CollaboraEmail
-              CollaboraProps["LETSENCRYPT_HOST"] = CollaboraUrl
-              CollaboraProps["VIRTUAL_HOST"] = CollaboraUrl
-              CollaboraProps["domain"] = CloudUrl
-              CollaboraProps["password"] = secrets.token_urlsafe(14)
-              add_hosts_file(currentIP["windows"], CollaboraUrl)
               if os.path.isfile('docker-compose.override.yml.tmpl'):
                 try:
-                  shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')
-                  print("erledigt!")
+                    shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')
+                    print("erledigt!")
                 except:
-                  print('Kann docker-compose.override.yml.tmpl nicht nach docker-compose.override.yml kopieren')
-              break
-        else:
-          print("Überspringe collabora Einrichtung, kann später noch händisch nachgeholt werden....!")
-          if os.path.isfile('docker-compose.override.yml'):
-              try:
-                  os.rename('docker-compose.override.yml', 'docker-compose.override.yml.tmp2')
-                  print("erledigt!")
-              except:
-                  print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml2 umbennen')
-          break
+                    print('Kann docker-compose.override.yml.tmpl nicht nach docker-compose.override.yml kopieren')
+                break
 
 
-if CollaboraEnable:
-    print("Personalisiere collabora.env...",end="")
+if OfficeInstallEnable:
+    print("Personalisiere office.env...",end="")
     try:
-        writeprop('collabora.env', CollaboraProps)
+        writeprop('office.env', OfficeProps)
         print("erledigt!")
     except:
-        print("Konnte collabora.env nicht schreiben....")
+        print("Konnte office.env nicht schreiben....")
 
 """ Currently not needed to edit yml files
     print("Personalisiere collabora docker-compose override und aktiviere.....", end="")
@@ -606,11 +529,11 @@ if CollaboraEnable:
     yml['services']['collab'][]
 """
 
-print("Personalisiere generell .env...")
+print("Personalisiere generelle .env...")
 GeneralProps = getprops(".env.tmpl")
 GeneralProps["NEXTDOMAIN"] = CloudUrl
-if CollaboraEnable:
-    GeneralProps["OFFICEDOMAIN"] = CollaboraUrl
+if OfficeWillInstall:
+    GeneralProps["OFFICEDOMAIN"] = OfficeUrl
 else:
     GeneralProps["OFFICEDOMAIN"] = "non.tes-ka.de"
 try:
@@ -681,6 +604,7 @@ if ldap_initialize(masters[PaedML], LdapPorts[PaedML], LdapUser, LdapPassword, u
     print("Kombination aus Username/Passwort für Ldapserver scheint zu funktionieren")
 else:
     print("Kombination aus User/Passwort für Ldapserver scheint falsch zu sein, mache trotzdem weiter...Du kannst es später in den der Nextcloud Weboberfläche ändern...!")
+    print("Das kann zur Folge haben, dass nach dem Login Internal Server Fehler kommt")
 
 
 # Ldap Plugin enable
@@ -833,6 +757,22 @@ if CollaboraEnable:
     #nextcloud_configure_general('config:richdocuments:activate-config')
     #time.sleep(3)
 
+
+# Install onlyoffice plugin if needed
+if OnlyofficeEnable:
+    print("Aktiviere Onlyoffice Plugin.....", end="")
+    nextcloud_configure_general('app:install onlyoffice')
+    print("erledigt!")
+    time.sleep(10)
+    print("Personalisiere Onlyoffice Plugin.....", end="")
+    nextcloud_configure_general('--no-warnings config:system:set onlyoffice DocumentServerUrl --value=https:\/\/{0}'.format(CollaboraUrl))
+    print("erledigt!")
+    time.sleep(5)
+    print("Setze allow_local_remote_servers in config.php", end="")
+    nextcloud_configure_general('--no-warnings config:system: set allow_local_remote_servers --value=true')
+    time.sleep(5)
+    print("erledigt!")
+
 # Disable profile modification for user-name
 print("Deaktiviere das Erlauben zum Ändern des eigenen Profiles.....", end="")
 nextcloud_configure_general('config:system:set allow_user_to_change_display_name --value=false')
@@ -845,11 +785,10 @@ nextcloud_configure_general('app:disable weather_status updatenotification first
 print("erledigt!")
 time.sleep(5)
 
-## todo
-# Limit special Apps to special groups
-
+# Ende 
 print("Setup ist durchgelaufen, bitte auf folgende Seite prüfen: https://{0}".format(HostProps['VIRTUAL_HOST']))
 print("-------------")
 
 
-#nextcloud_configure_ldap(l)
+## todo
+# Limit special Apps to special groups

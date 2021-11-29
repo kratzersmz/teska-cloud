@@ -80,7 +80,8 @@ ENV COMPANY_NAME=$COMPANY_NAME \
 RUN wget -q -P /tmp "$PACKAGE_URL" && \
     apt-get -y update && \
     service postgresql start && \
-    apt-get -yq install /tmp/$(basename "$PACKAGE_URL") && \
+    mv /tmp/download /tmp/download.deb && \
+    apt-get -yq install /tmp/download.deb && \
     service postgresql stop && \
     service supervisor stop && \
     chmod 755 /app/ds/*.sh && \
