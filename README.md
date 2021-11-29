@@ -37,10 +37,10 @@ Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 In ESXi add second network interface to a portgroup hanging on an vswitch without uplink
 ![DMZ](howto/fw_dmz.jpg?raw=true "DMZ Interface")
 
-4. Add Portfreischaltungen:  
+4. Add Portfreischaltungen(icmp, dns not needed anymore...):  
 ![DMZ](howto/fw_portfreischaltungen.png?raw=true "DMZ Portfreischaltungen")
 
-5. Add Portweiterleitungen(SSH, DNS, ICMP NOT NEEDED ANYMORE!):  
+5. Add Portweiterleitungen(SS NOT NEEDED):  
 ![DMZ](howto/fw_portweiterleitungen.jpg?raw=true "DMZ Portweiterleitungen")
 
 ## Prepare your dockerhost(nextcloud):
