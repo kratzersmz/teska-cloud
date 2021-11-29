@@ -771,7 +771,7 @@ if OnlyofficeEnable:
     print("erledigt!")
     time.sleep(5)
     print("Setze allow_local_remote_servers in config.php", end="")
-    nextcloud_configure_general('--no-warnings config:system: set allow_local_remote_servers --value=true')
+    nextcloud_configure_general('--no-warnings config:system:set allow_local_remote_servers --value=true')
     time.sleep(5)
     print("erledigt!")
 
