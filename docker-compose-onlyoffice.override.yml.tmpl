@@ -2,7 +2,7 @@ version: '2'
 services:
   onlyoffice-documentserver:
     build:
-      context: ./office/
+      context: ./onlyoffice/
     container_name: teska-onlyoffice
     depends_on:
       - onlyoffice-postgresql

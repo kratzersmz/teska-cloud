@@ -453,21 +453,22 @@ while True:
         OfficeInstallEnable = True
         if OfficeEnable.lower() in ['c']:
             print('Es wurde eine Collabora Installation gewünscht')
-            OnlyOfficeEnable = True
+            CollaboraEnable = True
+            break
         if OfficeEnable.lower() in ['o']:
             print('Es wurde eine Onlyoffice Installation gewünscht')
-            CollaboraEnable = True
+            OnlyofficeEnable = True
             break
         else:
             print('Es wurde keine Office Installation gewünscht oder eine falsche Taste gedrückt')
-            print("Überspringe collabora Einrichtung, kann später noch händisch nachgeholt werden....!")
+            print("Überspringe Office Einrichtung, kann später noch händisch nachgeholt werden....!")
             if os.path.isfile('docker-compose.override.yml'):
                 try:
                     os.rename('docker-compose.override.yml', 'docker-compose.override.yml.tmp2')
                     print("erledigt!")
                 except:
-                    print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml2 umbennen')
-                break
+                    print('Kann docker-compose.override.yml nicht nach docker-compose.override.yml.tmp2 umbennen')
+            break
             
 
 
