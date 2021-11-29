@@ -14,7 +14,6 @@ import json
 import yaml
 import shutil
 import argparse
-from git import Repo
 from contextlib import closing
 from subprocess import PIPE
 
@@ -479,34 +478,33 @@ if CollaboraEnable or OnlyofficeEnable:
                                  OfficeProps["VIRTUAL_HOST"])
     if len(OfficeUrl) < 1:
         print("Ungültige Eingabe(zu wenig Zeichen)!")
-        elif not '.' in OfficeUrl:
+    elif not '.' in OfficeUrl:
             print("Ungültige Eingabe(für eine richtige domain fehlt ein . in der domain!")
-        elif HostProps["VIRTUAL_HOST"].lower() == OfficeUrl.lower():
+    elif HostProps["VIRTUAL_HOST"].lower() == OfficeUrl.lower():
             print("Office Domain kann nicht die gleiche wie die Nextcloud Domain sein!")
-        else:
-            OfficeEmail = 'admin@' + OfficeUrl
-            OfficeProps["LETSENCRYPT_EMAIL"] = OfficeEmail
-            OfficeProps["LETSENCRYPT_HOST"] = OfficeUrl
-            OfficeProps["VIRTUAL_HOST"] = OfficeUrl
-            # Doing different stuff for differnt Installations
-            if CollaboraEnable:
-                OfficeProps["domain"] = CloudUrl
-                OfficeProps["password"] = secrets.token_urlsafe(14)
-                OfficeProps["VIRTUAL_PORT"] = "9980"
-                OfficeWillInstall = "collabora"
-            if OnlyofficeEnable:
-                OfficeProps["JWT_ENABLED"] = "true"
-                OfficeProps["JWT_SECRET"] = secrets.token_urlsafe(14)
-                OfficeProps["VIRTUAL_PORT"] = "80"
-                add_hosts_file(currentIP["windows"], CollaboraUrl)
-                OfficeWillInstall = "onlyoffice"
-            if os.path.isfile('docker-compose.override.yml.tmpl'):
-                try:
-                    shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')
-                    print("erledigt!")
-                except:
-                    print('Kann docker-compose.override.yml.tmpl nicht nach docker-compose.override.yml kopieren')
-                break
+    else:
+        OfficeEmail = 'admin@' + OfficeUrl
+        OfficeProps["LETSENCRYPT_EMAIL"] = OfficeEmail
+        OfficeProps["LETSENCRYPT_HOST"] = OfficeUrl
+        OfficeProps["VIRTUAL_HOST"] = OfficeUrl
+        # Doing different stuff for differnt Installations
+        if CollaboraEnable:
+            OfficeProps["domain"] = CloudUrl
+            OfficeProps["password"] = secrets.token_urlsafe(14)
+            OfficeProps["VIRTUAL_PORT"] = "9980"
+            OfficeWillInstall = "collabora"
+        if OnlyofficeEnable:
+            OfficeProps["JWT_ENABLED"] = "true"
+            OfficeProps["JWT_SECRET"] = secrets.token_urlsafe(14)
+            OfficeProps["VIRTUAL_PORT"] = "80"
+            add_hosts_file(currentIP["windows"], OfficeUrl)
+            OfficeWillInstall = "onlyoffice"
+        if os.path.isfile('docker-compose.override.yml.tmpl'):
+            try:
+                shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')
+                print("erledigt!")
+            except:
+                print('Kann docker-compose.override.yml.tmpl nicht nach docker-compose.override.yml kopieren')
 
 
 if OfficeInstallEnable:
