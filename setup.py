@@ -770,6 +770,8 @@ if OnlyofficeEnable:
     nextcloud_configure_general('--no-warnings config:system:set onlyoffice DocumentServerUrl --value=https:\/\/{0}'.format(OfficeUrl))
     print("erledigt!")
     time.sleep(5)
+    print("Setze jwt secret....", end="")
+    nextcloud_configure_general("--no-warnings config:app:set onlyoffice jwt_secret --value={0}".format(OfficeProps["JWT_SECRET"]))
     print("Setze allow_local_remote_servers in config.php", end="")
     nextcloud_configure_general('--no-warnings config:system:set allow_local_remote_servers --value=true')
     time.sleep(5)
