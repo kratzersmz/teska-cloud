@@ -785,7 +785,7 @@ time.sleep(5)
 
 # add ldap setup to nextcloud
 print("PreCheck von Ldap Username/PW direkt am Server....", end='')
-if ldap_initialize(masters[PaedML], LdapPorts[PaedML], LdapUser, LdapPassword, use_ssl=False, timeout=4000):
+if ldap_initialize(masters[PaedML], LdapPorts[PaedML], LdapUser, LdapPassword, use_ssl=True, timeout=4000):
     print("Kombination aus Username/Passwort für Ldapserver scheint zu funktionieren")
 else:
     print("Kombination aus User/Passwort für Ldapserver scheint falsch zu sein, mache trotzdem weiter...Du kannst es später in den der Nextcloud Weboberfläche ändern...!")
