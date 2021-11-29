@@ -82,6 +82,7 @@ python3 setup.py
 * -u, --update -> will update your installation to latest, currently  not implemented
 
 ## teska cloud VM
+* if you get vmx-19 not supported edit *.ovf to vmx-13
 * navigate to /home/docker/teska-cloud 
 * python3 setup.py --pull (alterantively you can do git pull && git reset --hard)
 * python3 setup.py 
