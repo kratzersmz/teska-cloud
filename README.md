@@ -55,6 +55,9 @@ DNS: 8.8.8.8
 ## Prepare your Ldapbind user
 Add an new ldapbinduser for nextcloud under _ServiceAccounts. Please copy ldapbinduser to it inherits its attributes.
 
+## Add Reverse Lookup zone
+Add an ptr zone for 192.168.201.
+
 ## Add a new forward Lookup Zone in your DNS Server:
 e.g. cloud.hans-schule.de and Point the A record directly to 192.168.201.7
 
@@ -83,8 +86,10 @@ python3 setup.py
 
 ## teska cloud VM
 * if you get vmx-19 not supported edit *.ovf to vmx-13
+* sudo su
 * navigate to /home/docker/teska-cloud 
-* python3 setup.py --pull (alterantively you can do git pull && git reset --hard)
+* git pull
+* git reset --hard
 * python3 setup.py 
 
 ## Caveats
