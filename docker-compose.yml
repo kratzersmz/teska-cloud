@@ -45,7 +45,7 @@ services:
       - default
 
   cron:
-    image: nextcloud:21-fpm-alpine
+    image: nextcloud:22-fpm-alpine
     restart: always
     volumes:
       - nextcloud:/var/www/html
