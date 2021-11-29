@@ -275,7 +275,7 @@ if args.pull:
     print('Hole letzte Daten vom git repo {0}'.format(cloudGitRepo))
     process = subprocess.Popen(["git","add", "-A"], stdout=subprocess.PIPE)
     output = process.communicate()[0]
-    process = subprocess.Popen(["git","commit","-am","'committed'"], stout=subprocess.PIPE)
+    process = subprocess.Popen(["git","commit","-am","'committed'"], stdout=subprocess.PIPE)
     output = process.communicate()[0]
     process = subprocess.Popen(["git", "fetch"], stdout=subprocess.PIPE)
     output = process.communicate()[0]
