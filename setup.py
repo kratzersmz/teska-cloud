@@ -158,7 +158,7 @@ def ping(hostname, waittime=1000):
 def check_socket(host, port):
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
         sock.settimeout(2)
-        if sock.connect_ex((host, port)) == 0:
+        if sock.connect_ex((host, (port))) == 0:
             return True
         else:
             return False
@@ -350,7 +350,7 @@ clean_dir()
 print("Prüfe ob eine paedML Win/Linux oder eine LMN per smb+ldaps erreichbar...")
 if check_socket(masters["linux"], smbPort):
     print("PaedML Linux gefunden, prüfe ldaps Port...")
-    if check_socket(masters["linux"], LdapPorts):
+    if check_socket(masters["linux"], LdapPorts["linux"]):
         print("Ldaps Port is auch offen, sehr gut!")
         PaedML = "linux"
     else:
@@ -359,7 +359,7 @@ if check_socket(masters["linux"], smbPort):
 
 elif check_socket(dataServers["windows"], smbPort):
     print("PaedML Windows gefunden, prüfe ldaps Port...")
-    if check_socket(masters["windows"], LdapPorts):
+    if check_socket(masters["windows"], LdapPorts["windows"]):
         print("Ldaps Port is auch offen, sehr gut!")
         PaedML = "windows"
     else:
@@ -368,7 +368,7 @@ elif check_socket(dataServers["windows"], smbPort):
 
 elif check_socket(masters["lmn"], smbPort):
     print("LMN gefunden, prüfe ldaps Port...")
-    if check_socket(masters["lmn"], LdapPorts):
+    if check_socket(masters["lmn"], LdapPorts["lmn"]):
         print("Ldaps Port is auch offen, sehr gut!")
         PaedML = "lmn"
     else:
@@ -448,7 +448,7 @@ OnlyofficeEnable = False
 CollaboraEnable = False
 OfficeInstallEnable = False
 while True:
-    OfficeEnable = default_input("Soll eine Onlyoffice oder Collabora Instanz eingerichtet werden? O für Onlyoffice, C für Collabora, N für nix", "J")
+    OfficeEnable = default_input("Soll eine Onlyoffice oder Collabora Instanz eingerichtet werden? O für Onlyoffice, C für Collabora, N für nix", "O")
     if OfficeEnable.lower() in ['c', 'o']:
         OfficeInstallEnable = True
         if OfficeEnable.lower() in ['c']:
@@ -457,6 +457,7 @@ while True:
         if OfficeEnable.lower() in ['o']:
             print('Es wurde eine Onlyoffice Installation gewünscht')
             CollaboraEnable = True
+            break
         else:
             print('Es wurde keine Office Installation gewünscht oder eine falsche Taste gedrückt')
             print("Überspringe collabora Einrichtung, kann später noch händisch nachgeholt werden....!")
@@ -468,12 +469,14 @@ while True:
                     print('Kann docker-compose.override.yml.tmp nicht nach docker-compose.override.yml2 umbennen')
                 break
             
-        if os.path.isfile("office.env"):
-            OfficeProps = getprops("office.env")
-        else:
-            OfficeProps = getprops("office.env.tmpl")
+
 
 if CollaboraEnable or OnlyofficeEnable:
+    if os.path.isfile("office.env"):
+        OfficeProps = getprops("office.env")
+    else:
+        OfficeProps = getprops("office.env.tmpl")
+
     OfficeUrl = default_input("Wie ist die öffentliche domain/subdomain deiner Office instanz(ohne https://)",
                                  OfficeProps["VIRTUAL_HOST"])
     if len(OfficeUrl) < 1:
@@ -499,12 +502,12 @@ if CollaboraEnable or OnlyofficeEnable:
             OfficeProps["VIRTUAL_PORT"] = "80"
             add_hosts_file(currentIP["windows"], OfficeUrl)
             OfficeWillInstall = "onlyoffice"
-        if os.path.isfile('docker-compose.override.yml.tmpl'):
+        if os.path.isfile('{0}.tmpl'.format(dockerComposeOffice[OfficeWillInstall])):
             try:
-                shutil.copy2('docker-compose.override.yml.tmpl', 'docker-compose.override.yml')
+                shutil.copy2('{0}.tmpl'.format(dockerComposeOffice[OfficeWillInstall]), 'docker-compose.override.yml')
                 print("erledigt!")
             except:
-                print('Kann docker-compose.override.yml.tmpl nicht nach docker-compose.override.yml kopieren')
+                print('Kann {0}.tmpl nicht nach docker-compose.override.yml kopieren'.format(dockerComposeOffice[OfficeWillInstall]))
 
 
 if OfficeInstallEnable:
