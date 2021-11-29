@@ -600,14 +600,6 @@ except:
 time.sleep(5)
 
 
-# add ldap setup to nextcloud
-print("PreCheck von Ldap Username/PW direkt am Server....", end='')
-if ldap_initialize(masters[PaedML], LdapPorts[PaedML], LdapUser, LdapPassword, use_ssl=False, timeout=4000):
-    print("Kombination aus Username/Passwort für Ldapserver scheint zu funktionieren")
-else:
-    print("Kombination aus User/Passwort für Ldapserver scheint falsch zu sein, mache trotzdem weiter...Du kannst es später in den der Nextcloud Weboberfläche ändern...!")
-    print("Das kann zur Folge haben, dass nach dem Login Internal Server Fehler kommt")
-
 
 # Ldap Plugin enable
 print("aktiviere user_ldap plugin......", end="")
@@ -783,11 +775,22 @@ nextcloud_configure_general('config:system:set allow_user_to_change_display_name
 print("erledigt!")
 time.sleep(5)
 
+
 # Disable special apps
 print("Deaktiviere folgende apps: weather, announces, firstrun, federation, survey.....", end="")
 nextcloud_configure_general('app:disable weather_status updatenotification firstrunwizard federation nextcloud_announcements survey_client')
 print("erledigt!")
 time.sleep(5)
+
+
+# add ldap setup to nextcloud
+print("PreCheck von Ldap Username/PW direkt am Server....", end='')
+if ldap_initialize(masters[PaedML], LdapPorts[PaedML], LdapUser, LdapPassword, use_ssl=False, timeout=4000):
+    print("Kombination aus Username/Passwort für Ldapserver scheint zu funktionieren")
+else:
+    print("Kombination aus User/Passwort für Ldapserver scheint falsch zu sein, mache trotzdem weiter...Du kannst es später in den der Nextcloud Weboberfläche ändern...!")
+    print("Das kann zur Folge haben, dass nach dem Login Internal Server Fehler kommt. Bitte Ports Firewall + Ldapuser prüfen, eventuell hat er keine ldap query rechte!")
+
 
 # Ende 
 print("Setup ist durchgelaufen, bitte auf folgende Seite prüfen: https://{0}".format(HostProps['VIRTUAL_HOST']))
