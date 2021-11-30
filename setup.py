@@ -534,7 +534,7 @@ if OfficeInstallEnable:
 print("Personalisiere generelle .env...")
 GeneralProps = getprops(".env.tmpl")
 GeneralProps["NEXTDOMAIN"] = CloudUrl
-if OfficeWillInstall:
+if OfficeInstallEnable:
     GeneralProps["OFFICEDOMAIN"] = OfficeUrl
 else:
     GeneralProps["OFFICEDOMAIN"] = "non.tes-ka.de"
