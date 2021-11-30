@@ -13,7 +13,7 @@ This project is currently in developing. You'll find the prequisites for ubuntu 
 
 Benefits:
 - lets encrypt
-- collabora installation
+- collabora/onlyoffice, can be choosen interactively
 - best practice docker-compose way
 - all automated in an interactive python script
 
@@ -22,7 +22,7 @@ Benefits:
 In this example Octo/Sophos public IP is 37.22.22.111
 e.g. cloud.hans-schule.de	IN	A	37.22.22.111	3600s	(01:00:00)
 
-if you want to use collabora, please setup another domain e.g. office.hans-schule.de and point to same IP
+if you want to use collabora/onlyoffice, please setup another domain e.g. office.hans-schule.de and point to same IP
 Pls wait until the domain records where spread to all Nameservers(mostly 24h)
 
 
@@ -61,7 +61,7 @@ Add an ptr zone for 192.168.201.
 ## Add a new forward Lookup Zone in your DNS Server:
 e.g. cloud.hans-schule.de and Point the A record directly to 192.168.201.7
 
-if using collabora, point e.g. office.hans-schule.de directly with a A record to 192.168.201.7
+if using collabora/onlyoffice, point e.g. office.hans-schule.de directly with a A record to 192.168.201.7
 
 ## HowTo run
 use an linux distri you want. this stuff was build on ubuntu-server, but any other distro with docker+docker-compose + a few python moduls should do. 
