@@ -267,8 +267,9 @@ def ldap_initialize(remote, port, user, password, use_ssl=False, timeout=None):
 ## loop over parameters
 parser = argparse.ArgumentParser(description='Process Args')
 parser.add_argument('-p','--pull', action='store_true', help='get latest Data from github repo, use with care', required=False)
-parser.add_argument('-fu','--fixupdate', action='store_true', help='will fix Database indices and others...', required=False)
+parser.add_argument('-f','--fixupdate', action='store_true', help='will fix Database indices and others...', required=False)
 parser.add_argument('-u','--update', action='store_true', help='will update your nextcloud instance', required=False)
+parser.add_argument('-l','--ldapdisable', action='store_true', help='will disable ldap config for debugging login errors', required=False)
 args = parser.parse_args()
 
 if args.pull:
@@ -296,13 +297,20 @@ if args.pull:
 if args.fixupdate:
     print("Update die DB missing-indices, columns, primary keys. Dies kann ein paar Minuten dauern.....", end="")
     nextcloud_configure_general('db:add-missing-indices')
-    time.sleep(2)
+    time.sleep(3)
     nextcloud_configure_general('db:add-missing-columns')
-    time.sleep(2)
+    time.sleep(3)
     nextcloud_configure_general('db:add-missing-primary-keys')
     print("erledigt!")
-    time.sleep(5)
     sys.exit(0)
+    
+if args.ldapdisable:
+    print("Deaktiviere Ldapconfig um einloggen zu ermöglichen. Nützlich wenn es spezielle Probleme nach einloggen mit Internal Serverfehler gibt...", end="")
+    nextcloud_configure_general('ldap:set-config s01 ldapConfigurationActive value=0')
+    time.sleep(2)
+    print("erledigt!")
+    sys.exit(0)
+    
 
 if args.update:
     print("Update installation, not yet implemented")
