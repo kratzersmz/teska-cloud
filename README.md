@@ -81,7 +81,8 @@ python3 setup.py
 
 ## Parameters for setup.py
 * -p, --pull -> get latest data from git repo
-* -fu, --fixupdate -> If after updates in webinterface is showing some Info about indices and Databases which need to fixed. This is done with this argument
+* -f, --fixupdate -> If after updates in webinterface is showing some Info about indices and Databases which need to fixed. This is done with this argument
+* -l, ldapdisable -> Disables Ldap config, needful for debbuging Internal Server Error after login, Enable pls over webinterface
 * -u, --update -> will update your installation to latest, currently  not implemented
 
 ## teska cloud VM
@@ -91,6 +92,7 @@ python3 setup.py
 * git pull
 * git reset --hard
 * python3 setup.py 
+* after setup please change teska pw, with "passwd teska"
 
 ## Caveats
 * if setup succeeds without errors and you'll get an Internal Server error when loggin into your new cloud, mostly ldapbinduser is wrong setup (no ldap query attributes or wrong pw or port is closed in firewall)
